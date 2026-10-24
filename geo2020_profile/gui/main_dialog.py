@@ -6,17 +6,17 @@ import time
 from qgis.PyQt.QtCore import QCoreApplication, Qt, QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox, QComboBox, QDialog,
-                                 QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel,
+                                 QFormLayout, QGroupBox, QHBoxLayout, QLabel,
                                  QLineEdit, QListWidget, QListWidgetItem, QMessageBox,
                                  QPlainTextEdit, QProgressBar, QPushButton, QRadioButton,
                                  QScrollArea, QSlider, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
-from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsMapLayer,
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
                        QgsProject, QgsRasterLayer, QgsRectangle, QgsSettings, QgsVectorLayer)
 from qgis.gui import (QgsFieldComboBox, QgsFileWidget, QgsMapLayerComboBox,
                       QgsProjectionSelectionWidget)
 
 from ..core import runner
-from ..core.compat import geometry_kind
+from ..core.compat import geometry_kind, log_exception
 from ..core.geo2020 import Geo2020Data, find_mdb_files
 from ..core.holes_layer import LAYER_PROP, build_holes_layer
 
@@ -463,8 +463,8 @@ class MainDialog(QDialog):
         if dst.isValid() and dst != lyr.crs():
             try:
                 ext = QgsCoordinateTransform(lyr.crs(), dst, QgsProject.instance()).transformBoundingBox(ext)
-            except Exception:
-                pass
+            except Exception as e:
+                log_exception("鑽孔範圍座標轉換失敗", e)
         geographic = dst.isGeographic() if dst.isValid() else lyr.crs().isGeographic()
         minw = 0.002 if geographic else 150.0
         if ext.width() < minw or ext.height() < minw:
@@ -495,11 +495,12 @@ class MainDialog(QDialog):
                     break
 
     def _section_layer_changed(self, lyr):
-        try:
-            if getattr(self, "_sel_layer", None) is not None:
-                self._sel_layer.selectionChanged.disconnect(self._update_selection_info)
-        except Exception:
-            pass
+        old = getattr(self, "_sel_layer", None)
+        if old is not None:
+            try:
+                old.selectionChanged.disconnect(self._update_selection_info)
+            except (TypeError, RuntimeError) as e:  # already disconnected / layer deleted
+                log_exception("剖面線圖層訊號解除", e)
         self._sel_layer = lyr if isinstance(lyr, QgsVectorLayer) else None
         self.name_field.setLayer(self._sel_layer)
         if self._sel_layer is not None:

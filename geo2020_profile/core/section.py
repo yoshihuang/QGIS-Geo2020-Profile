@@ -12,7 +12,7 @@ column, discontinuities on the column axis.
 import math
 
 from qgis.core import (QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsPointXY,
-                       QgsProject, QgsRasterLayer, QgsRectangle)
+                       QgsProject, QgsRasterLayer)
 
 from .symbology import code_name, normalize_code
 

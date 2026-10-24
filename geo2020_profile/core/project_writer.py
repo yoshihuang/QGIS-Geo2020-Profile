@@ -3,16 +3,17 @@
 import math
 import os
 
-from qgis.PyQt.QtCore import QSizeF
 from qgis.PyQt.QtGui import QFont, QFontDatabase
 from qgis.PyQt.QtXml import QDomDocument
-from qgis.core import (QgsAction, QgsCoordinateReferenceSystem, QgsFeature, QgsLayoutItem,
+from qgis.core import (QgsAction, QgsFeature, QgsLayoutItem,
                        QgsLayoutItemLabel, QgsLayoutItemLegend, QgsLayoutItemMap,
                        QgsLayoutItemScaleBar, QgsLayoutPoint, QgsLayoutSize, QgsPrintLayout,
                        QgsProject, QgsReadWriteContext, QgsRectangle, QgsTextFormat,
                        QgsVectorFileWriter, QgsVectorLayer)
 
-from .compat import make_field
+from qgis.core import Qgis
+
+from .compat import enum_value, make_field
 from .symbology import discon_renderer, strata_renderer
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -234,10 +235,7 @@ class ProjectBuilder(object):
             '[% "地層代碼" %] [% "圖元名稱" %]　[% "風化程度" %]<br/>[% "描述" %]<br/>'
             '[% array_to_string(array_foreach(string_to_array(coalesce("照片",\'\'),\';\'),'
             ' \'<img src="file:///\' || replace(@element,\'\\\\\',\'/\') || \'" width="320"/><br/>\'),\'\') %]')
-        try:
-            strata.setDisplayExpression('"孔號" || \' \' || "頂深" || \'-\' || "底深" || \'m \' || "圖元名稱"')
-        except Exception:
-            pass
+        strata.setDisplayExpression('"孔號" || \' \' || "頂深" || \'-\' || "底深" || \'m \' || "圖元名稱"')
         self._add_photo_action(strata)
         types = sorted(set(a["TYPE"] for _g, a in self._data["discon"]))
         if types:
@@ -266,11 +264,10 @@ class ProjectBuilder(object):
             "    p.show_photos_for_feature('[%% @layer_id %%]', [%% $id %%])\n"
             "else:\n"
             "    iface.messageBar().pushWarning('岩心照片', '請先安裝 Geo2020 地質剖面產製外掛')\n" % PLUGIN_KEY)
-        try:
-            from qgis.core import Qgis
+        if hasattr(Qgis, "AttributeActionType"):
             atype = Qgis.AttributeActionType.GenericPython
-        except AttributeError:
-            atype = QgsAction.GenericPython
+        else:  # QGIS < 3.30
+            atype = enum_value(QgsAction, "ActionType", "GenericPython")
         act = QgsAction(atype, "顯示岩心照片", code, "", False, "岩心照片", {"Feature", "Canvas"})
         layer.actions().addAction(act)
 
@@ -307,10 +304,7 @@ class ProjectBuilder(object):
 
         if legend is not None:
             legend.setAutoUpdateModel(True)
-            try:
-                legend.setLinkedMap(mp)
-            except Exception:
-                pass
+            legend.setLinkedMap(mp)
             legend.setAutoUpdateModel(False)
             hide = [prj.mapLayersByName("%s — paths" % sec.name)]
             hide_ids = set(l.id() for group in hide for l in group)
@@ -328,11 +322,9 @@ class ProjectBuilder(object):
         top = zmax + head_mm / k
         H = (top - bottom) * k
         page_h = H + 4.3
-        try:
-            page = layout.pageCollection().page(0)
+        page = layout.pageCollection().page(0)
+        if page is not None:
             page.setPageSize(QgsLayoutSize(297.0, page_h))
-        except Exception:
-            pass
         mp.attemptMove(QgsLayoutPoint(2.15, 2.15))
         mp.attemptResize(QgsLayoutSize(W, H))
         mp.setExtent(QgsRectangle(xmin, bottom, xmax, top))

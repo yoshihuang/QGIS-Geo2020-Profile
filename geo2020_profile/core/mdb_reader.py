@@ -7,17 +7,12 @@ Jet 4 database.  QGIS on Windows usually has no 64-bit Access ODBC driver, so th
 plugin ships this small dependency-free reader.  It supports what Geo2020 uses:
 text / memo / numeric / date / OLE columns, usage maps and long-value (LVAL) pages.
 
-If the pure-Python reader fails, ``open_mdb`` falls back to GDAL's ODBC driver
-(Windows + Microsoft Access Database Engine) or to the ``mdb-export`` command
-(mdbtools on Linux / macOS).
+If the pure-Python reader fails, ``open_mdb`` falls back to GDAL's ODBC / MDB
+drivers (e.g. Windows + Microsoft Access Database Engine).
 """
-import csv
 import datetime
-import io
 import os
-import shutil
 import struct
-import subprocess
 
 __all__ = ["MdbError", "JetReader", "open_mdb"]
 
@@ -410,7 +405,7 @@ class _OgrReader(object):
     """GDAL ODBC (Windows) / MDB / PGeo driver."""
 
     def __init__(self, path):
-        from osgeo import gdal, ogr  # noqa
+        from osgeo import gdal
         gdal.UseExceptions()
         self.ds = None
         for drv in ("ODBC", "MDB", "PGeo"):
@@ -452,38 +447,12 @@ class _OgrReader(object):
         return out
 
 
-class _MdbToolsReader(object):
-    def __init__(self, path):
-        self.path = path
-        self.exe = shutil.which("mdb-export")
-        if not self.exe:
-            raise MdbError("mdb-export not found")
-        tl = shutil.which("mdb-tables")
-        out = subprocess.run([tl, "-1", path], capture_output=True).stdout
-        self.names = out.decode("utf-8", "replace").split()
-
-    def has_table(self, name):
-        return any(n.lower() == name.lower() for n in self.names)
-
-    def table_names(self, include_system=False):
-        return list(self.names)
-
-    def read_table(self, name):
-        out = subprocess.run([self.exe, "-D", "%Y-%m-%d %H:%M:%S", self.path, name],
-                             capture_output=True).stdout.decode("utf-8", "replace")
-        csv.field_size_limit(1 << 30)
-        rows = []
-        for r in csv.DictReader(io.StringIO(out)):
-            rows.append({k: (None if v == "" else v) for k, v in r.items()})
-        return rows
-
-
 def open_mdb(path):
     """Return a reader object with ``has_table``, ``table_names``, ``read_table``."""
     if not os.path.isfile(path):
         raise MdbError("File not found: %s" % path)
     errors = []
-    for cls in (JetReader, _OgrReader, _MdbToolsReader):
+    for cls in (JetReader, _OgrReader):
         try:
             r = cls(path)
             r.table_names()

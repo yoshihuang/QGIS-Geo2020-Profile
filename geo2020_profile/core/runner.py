@@ -6,7 +6,7 @@ import re
 from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject,
                        QgsRasterLayer, QgsVectorLayer)
 
-from .compat import geometry_kind
+from .compat import geometry_kind, log_exception
 from .geo2020 import Geo2020Data
 from .project_writer import ProjectBuilder
 from .section import SectionBuilder, SectionError, TerrainSampler
@@ -117,8 +117,8 @@ def validate(cfg):
             if uncovered:
                 errs.append(("2. 數值地形", "地形圖層範圍未涵蓋剖面線：%s（請確認選擇正確的 DEM / 等高線圖層與座標系統）"
                              % "、".join(uncovered)))
-        except Exception:
-            pass
+        except Exception as e:  # coverage check is advisory only
+            log_exception("地形範圍檢查略過", e)
     # 3. elevation source
     if cfg.elev_source not in ("dem", "mdb"):
         errs.append(("3. 井口高程", "請選擇井口高程來源"))

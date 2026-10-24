@@ -9,6 +9,8 @@ from qgis.PyQt.QtWidgets import (QDockWidget, QHBoxLayout, QLabel, QPushButton, 
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsMapToolIdentify
 
+from ..core.compat import enum_value
+
 PLUGIN_KEY = "geo2020_profile"
 REQUIRED = ("孔號", "頂深", "底深")
 
@@ -95,15 +97,8 @@ class PhotoMapTool(QgsMapToolIdentify):
     def __init__(self, canvas, plugin):
         super(PhotoMapTool, self).__init__(canvas)
         self.plugin = plugin
-        try:
-            from qgis.gui import QgsMapToolIdentify as T
-            self._mode = T.IdentifyMode.TopDownStopAtFirst
-        except AttributeError:
-            self._mode = QgsMapToolIdentify.TopDownStopAtFirst
-        try:
-            self._ltype = QgsMapToolIdentify.Type.VectorLayer
-        except AttributeError:
-            self._ltype = QgsMapToolIdentify.VectorLayer
+        self._mode = enum_value(QgsMapToolIdentify, "IdentifyMode", "TopDownStopAtFirst")
+        self._ltype = enum_value(QgsMapToolIdentify, "Type", "VectorLayer")
 
     def canvasReleaseEvent(self, e):  # noqa: N802
         layers = [l for l in self.canvas().layers() if _is_strata_layer(l)]

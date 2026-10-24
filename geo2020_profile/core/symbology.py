@@ -11,17 +11,21 @@ import base64
 import json
 import os
 
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (QgsCategorizedSymbolRenderer, QgsFillSymbol, QgsMarkerSymbol,
                        QgsProperty, QgsRendererCategory, QgsSimpleFillSymbolLayer,
                        QgsSimpleMarkerSymbolLayer, QgsSVGFillSymbolLayer, QgsSymbolLayer,
                        QgsUnitTypes)
 
-try:
-    from qgis.core import Qgis
+from qgis.core import Qgis
+
+from .compat import enum_value
+
+if hasattr(Qgis, "RenderUnit"):
     _MM = Qgis.RenderUnit.Millimeters
-except AttributeError:  # QGIS < 3.30
-    _MM = QgsUnitTypes.RenderMillimeters
+else:  # QGIS < 3.30
+    _MM = enum_value(QgsUnitTypes, "RenderUnit", "RenderMillimeters")
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SYMBOL_DIR = os.path.join(PLUGIN_DIR, "symbols", "rule2008")
@@ -89,20 +93,13 @@ def strata_symbol(code, colored=True, pattern_width_mm=6.0, embed=True):
     if src:
         pat = QgsSVGFillSymbolLayer(src, pattern_width_mm, 0.0)
         pat.setPatternWidthUnit(_MM)
-        try:
-            pat.setSvgFillColor(QColor(0, 0, 0))
-            pat.setSvgStrokeWidth(0)
-        except Exception:
-            pass
+        pat.setSvgFillColor(QColor(0, 0, 0))
+        pat.setSvgStrokeWidth(0)
         sym.appendSymbolLayer(pat)
         # keep an outline on top of the pattern
         ol = QgsSimpleFillSymbolLayer()
         ol.setColor(QColor(0, 0, 0, 0))
-        try:
-            from qgis.PyQt.QtCore import Qt
-            ol.setBrushStyle(Qt.BrushStyle.NoBrush)
-        except Exception:
-            pass
+        ol.setBrushStyle(Qt.BrushStyle.NoBrush)
         ol.setStrokeColor(QColor(35, 35, 35))
         ol.setStrokeWidth(0.3)
         ol.setStrokeWidthUnit(_MM)
@@ -132,6 +129,12 @@ DISCON_STYLE = {
 }
 
 
+if hasattr(QgsSymbolLayer, "Property") and hasattr(QgsSymbolLayer.Property, "Angle"):
+    _ANGLE_PROP = QgsSymbolLayer.Property.Angle
+else:  # QGIS < 3.30
+    _ANGLE_PROP = enum_value(QgsSymbolLayer, "Property", "PropertyAngle")
+
+
 def discon_renderer(type_names, field="TYPE", dip_field="DIP"):
     cats = []
     for name in sorted(set(t for t in type_names if t), key=lambda n: list(DISCON_STYLE).index(n)
@@ -152,8 +155,7 @@ def discon_renderer(type_names, field="TYPE", dip_field="DIP"):
         lyr.setColor(QColor(color))
         lyr.setStrokeWidth(width)
         lyr.setStrokeWidthUnit(_MM)
-        lyr.setDataDefinedProperty(QgsSymbolLayer.PropertyAngle if hasattr(QgsSymbolLayer, "PropertyAngle")
-                                   else QgsSymbolLayer.Property.Angle,
+        lyr.setDataDefinedProperty(_ANGLE_PROP,
                                    QgsProperty.fromExpression('90 - coalesce("%s", 0)' % dip_field))
         sym.appendSymbolLayer(lyr)
         cats.append(QgsRendererCategory(name, sym, name))

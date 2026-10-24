@@ -5,7 +5,9 @@ from qgis.core import (QgsFeature, QgsGeometry, QgsMarkerSymbol, QgsPalLayerSett
                        QgsPointXY, QgsSingleSymbolRenderer, QgsTextBufferSettings,
                        QgsTextFormat, QgsVectorLayer, QgsVectorLayerSimpleLabeling)
 
-from .compat import make_field
+from qgis.core import Qgis
+
+from .compat import enum_value, make_field
 
 LAYER_PROP = "geo2020_profile/holes_layer"
 FIELDS = [("計畫編號", "string"), ("計畫名稱", "string"), ("孔號", "string"), ("X", "double"),
@@ -69,11 +71,10 @@ def style_holes_layer(lyr):
     buf.setColor(QColor(255, 255, 255))
     fmt.setBuffer(buf)
     s.setFormat(fmt)
-    try:
-        from qgis.core import Qgis
+    if hasattr(Qgis, "LabelPlacement"):
         s.placement = Qgis.LabelPlacement.OrderedPositionsAroundPoint
-    except AttributeError:  # QGIS < 3.26
-        s.placement = QgsPalLayerSettings.OrderedPositionsAroundPoint
+    else:  # QGIS < 3.26
+        s.placement = enum_value(QgsPalLayerSettings, "Placement", "OrderedPositionsAroundPoint")
     s.dist = 1.5
     lyr.setLabeling(QgsVectorLayerSimpleLabeling(s))
     lyr.setLabelsEnabled(True)

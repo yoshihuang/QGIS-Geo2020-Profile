@@ -5,7 +5,7 @@ import os
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
-from .core.compat import QAction
+from .core.compat import QAction, log_exception
 
 PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
 MENU = "Geo2020 地質剖面產製"
@@ -58,8 +58,8 @@ class Geo2020ProfilePlugin(object):
             try:
                 if self.iface.mapCanvas().mapTool() is self.photo_tool:
                     self.iface.mapCanvas().unsetMapTool(self.photo_tool)
-            except Exception:
-                pass
+            except RuntimeError as e:  # canvas already deleted on QGIS exit
+                log_exception("卸載岩心照片工具", e)
             self.photo_tool = None
         if self.photo_dock is not None:
             self.iface.removeDockWidget(self.photo_dock)
