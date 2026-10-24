@@ -75,7 +75,7 @@ class Borehole(object):
         return self.hole_no
 
     def bottom_depth(self):
-        d = [l["bottom"] for l in self.layers if l["bottom"] is not None]
+        d = [item_["bottom"] for item_ in self.layers if item_["bottom"] is not None]
         if self.depth:
             d.append(self.depth)
         return max(d) if d else 0.0
@@ -195,10 +195,10 @@ class Geo2020Data(object):
             weather.setdefault((_s(r.get("proj_no")), _s(r.get("hole_no"))), []).append(
                 (_f(r.get("top_depth"), 0.0), _f(r.get("bottom_depth"), 0.0), "～".join(names)))
         for b in self.holes.values():
-            b.layers.sort(key=lambda l: (l["top"], l["bottom"]))
-            for l in b.layers:
-                l["desc"] = _best_overlap(desc.get(b.key, []), l["top"], l["bottom"])
-                l["weather"] = _best_overlap(weather.get(b.key, []), l["top"], l["bottom"])
+            b.layers.sort(key=lambda item_: (item_["top"], item_["bottom"]))
+            for item_ in b.layers:
+                item_["desc"] = _best_overlap(desc.get(b.key, []), item_["top"], item_["bottom"])
+                item_["weather"] = _best_overlap(weather.get(b.key, []), item_["top"], item_["bottom"])
 
         for r in self._rows("geol_rqds"):
             b = self._hole(r, create=False)

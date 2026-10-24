@@ -337,16 +337,16 @@ class MainDialog(QDialog):
                             combo.setLayer(lyr)
                             return
 
-        def is_line(l):
-            return isinstance(l, QgsVectorLayer) and geometry_kind(l) == "Line"
-        pick(self.sec_cb, [lambda l: is_line(l) and ("剖面" in l.name() or "section" in l.name().lower()
-                                                    or "profile" in l.name().lower())])
-        pick(self.terrain_cb, [lambda l: isinstance(l, QgsRasterLayer) and ("dem" in l.name().lower()
-                                                                         or "dtm" in l.name().lower()
-                                                                         or "地形" in l.name()),
-                               lambda l: isinstance(l, QgsRasterLayer),
-                               lambda l: is_line(l) and ("等高" in l.name() or "contour" in l.name().lower()
-                                                         or "cntr" in l.name().lower())])
+        def is_line(item_):
+            return isinstance(item_, QgsVectorLayer) and geometry_kind(item_) == "Line"
+        pick(self.sec_cb, [lambda item_: is_line(item_) and ("剖面" in item_.name() or "section" in item_.name().lower()
+                                                    or "profile" in item_.name().lower())])
+        pick(self.terrain_cb, [lambda item_: isinstance(item_, QgsRasterLayer) and ("dem" in item_.name().lower()
+                                                                         or "dtm" in item_.name().lower()
+                                                                         or "地形" in item_.name()),
+                               lambda item_: isinstance(item_, QgsRasterLayer),
+                               lambda item_: is_line(item_) and ("等高" in item_.name() or "contour" in item_.name().lower()
+                                                         or "cntr" in item_.name().lower())])
         if self.terrain_cb.currentLayer() is not None and \
                 self.terrain_cb.currentLayer() is self.sec_cb.currentLayer():
             self.terrain_cb.setLayer(None)

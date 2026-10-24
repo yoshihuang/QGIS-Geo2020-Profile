@@ -423,9 +423,9 @@ class _OgrReader(object):
         lyr = self.ds.GetLayerByName(name)
         if lyr is None:
             for i in range(self.ds.GetLayerCount()):
-                l = self.ds.GetLayer(i)
-                if l.GetName().lower() == name.lower():
-                    return l
+                item_ = self.ds.GetLayer(i)
+                if item_.GetName().lower() == name.lower():
+                    return item_
         return lyr
 
     def has_table(self, name):

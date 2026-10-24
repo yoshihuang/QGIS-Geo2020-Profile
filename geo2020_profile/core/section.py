@@ -228,16 +228,16 @@ class SectionBuilder(object):
         hw = self.col_w / 2.0
         for h in self.holes:
             b, x, z = h["b"], h["ch"], h["z"]
-            for l in b.layers:
-                top, bot = l["top"], l["bottom"]
+            for item_ in b.layers:
+                top, bot = item_["top"], item_["bottom"]
                 if bot is None or top is None or bot <= top:
                     continue
                 zt, zb = z - top, z - bot
                 geom = QgsGeometry.fromPolygonXY([[QgsPointXY(x + hw, zb), QgsPointXY(x + hw, zt),
                                                    QgsPointXY(x - hw, zt), QgsPointXY(x - hw, zb),
                                                    QgsPointXY(x + hw, zb)]])
-                code = normalize_code(l["code"])
-                desc = l["desc"] or ""
+                code = normalize_code(item_["code"])
+                desc = item_["desc"] or ""
                 unit = desc.split("：")[0].split(":")[0].strip() if ("：" in desc or ":" in desc) else ""
                 if not unit or len(unit) > 12:
                     unit = code_name(code) or code
@@ -246,7 +246,7 @@ class SectionBuilder(object):
                 out.append((geom, {
                     "id": fid, "type": unit, "孔號": b.hole_no, "頂深": top, "底深": bot,
                     "頂高程": round(zt, 3), "底高程": round(zb, 3), "地層代碼": code,
-                    "圖元名稱": code_name(code), "風化程度": l["weather"] or "", "描述": desc,
+                    "圖元名稱": code_name(code), "風化程度": item_["weather"] or "", "描述": desc,
                     "孔口高程MDB": b.elev_mdb, "計畫編號": b.proj_no, "照片": ";".join(photos)}))
                 fid += 1
         return out
@@ -339,10 +339,10 @@ class SectionBuilder(object):
         for h in self.holes:
             b = h["b"]
             depth = None
-            for l in b.layers:
-                c = normalize_code(l["code"])
+            for item_ in b.layers:
+                c = normalize_code(item_["code"])
                 if c == "010" or (c[:1].isdigit() and c[:1] in "345678"):
-                    depth = l["top"]
+                    depth = item_["top"]
                     break
             if depth is None or depth <= 0:
                 continue

@@ -307,7 +307,7 @@ class ProjectBuilder(object):
             legend.setLinkedMap(mp)
             legend.setAutoUpdateModel(False)
             hide = [prj.mapLayersByName("%s — paths" % sec.name)]
-            hide_ids = set(l.id() for group in hide for l in group)
+            hide_ids = set(item_.id() for group in hide for item_ in group)
             lroot = legend.model().rootGroup()
             for node in list(lroot.findLayers()):
                 if node.layerId() in hide_ids:
@@ -373,18 +373,18 @@ class ProjectBuilder(object):
         if sec.holes:
             b = sec.holes[0]["b"]
             groups = []
-            for l in b.layers:
-                desc = l["desc"] or ""
+            for item_ in b.layers:
+                desc = item_["desc"] or ""
                 unit = desc.split("：")[0].split(":")[0].strip() if ("：" in desc or ":" in desc) else ""
                 from .symbology import code_name
                 if not unit or len(unit) > 12:
-                    unit = code_name(l["code"]) or l["code"]
+                    unit = code_name(item_["code"]) or item_["code"]
                 # merge weathering variants of the same rock into one name
-                base = code_name(l["code"]) or unit
+                base = code_name(item_["code"]) or unit
                 if groups and groups[-1][0] == base:
-                    groups[-1][2] = l["bottom"]
+                    groups[-1][2] = item_["bottom"]
                 else:
-                    groups.append([base, l["top"], l["bottom"], unit])
+                    groups.append([base, item_["top"], item_["bottom"], unit])
             h0 = sec.holes[0]
             z0 = sec.topo_at(0) + (h0["z"] - sec.topo_at(h0["ch"]))
             last_y = -1e9

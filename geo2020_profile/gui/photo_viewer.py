@@ -101,7 +101,7 @@ class PhotoMapTool(QgsMapToolIdentify):
         self._ltype = enum_value(QgsMapToolIdentify, "Type", "VectorLayer")
 
     def canvasReleaseEvent(self, e):  # noqa: N802
-        layers = [l for l in self.canvas().layers() if _is_strata_layer(l)]
+        layers = [item_ for item_ in self.canvas().layers() if _is_strata_layer(item_)]
         if not layers:
             self.plugin.iface.messageBar().pushWarning(
                 "岩心照片", "目前地圖中沒有地層（鑽孔柱狀圖）圖層。請開啟本外掛產製的地質剖面專案。")
