@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24" shape-rendering="crispEdges">
+<!-- 工程地質圖元 106 黏土 (Clay) - 依「工程地質探勘資料庫資料作業規範」附錄B -->
+<g fill="param(fill) #000000" fill-opacity="param(fill-opacity) 1" stroke="none"><rect x="34" y="0" width="14" height="1"/><rect x="15" y="4" width="14" height="1"/><rect x="0" y="8" width="14" height="1"/><rect x="26" y="11" width="14" height="1"/><rect x="7" y="16" width="14" height="1"/><rect x="31" y="20" width="14" height="1"/><rect x="14" y="22" width="14" height="1"/></g>
+</svg>

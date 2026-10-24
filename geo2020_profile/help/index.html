@@ -1,0 +1,132 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+body { font-family: "Microsoft JhengHei", "Noto Sans CJK TC", sans-serif; font-size: 10.5pt; line-height: 150%; }
+h1 { font-size: 16pt; color: #1f4e79; margin-bottom: 2px; }
+h2 { font-size: 12.5pt; color: #1f4e79; border-bottom: 1px solid #9db7d5; margin-top: 18px; }
+h3 { font-size: 11pt; color: #333; margin-top: 12px; }
+table.info td { padding: 2px 10px 2px 0; }
+table.grid { border-collapse: collapse; }
+table.grid th, table.grid td { border: 1px solid #aaa; padding: 3px 6px; }
+table.grid th { background: #e8eef6; }
+code { background: #f2f2f2; }
+.note { color: #8a5a00; }
+</style>
+</head>
+<body>
+<h1>{{name}}</h1>
+<p>由 Geo2020 工程地質探勘資料庫 (MDB) 批次產製地質剖面 QGIS 專案檔 (.qgz) 與 GeoPackage 圖層庫。</p>
+
+<h2>開發者資訊</h2>
+<table class="info">
+<tr><td><b>版本</b></td><td>{{version}}</td></tr>
+<tr><td><b>開發者</b></td><td>{{author}}</td></tr>
+<tr><td><b>聯絡信箱</b></td><td><a href="mailto:{{email}}">{{email}}</a></td></tr>
+<tr><td><b>專案網站</b></td><td><a href="{{homepage}}">{{homepage}}</a></td></tr>
+<tr><td><b>原始碼</b></td><td><a href="{{repository}}">{{repository}}</a></td></tr>
+<tr><td><b>問題回報</b></td><td><a href="{{tracker}}">{{tracker}}</a></td></tr>
+<tr><td><b>QGIS 版本</b></td><td>{{qgisminimumversion}} 以上（支援 QGIS 3.x 與 4.x）</td></tr>
+<tr><td><b>授權</b></td><td>GNU General Public License v2 或更新版本</td></tr>
+</table>
+<p>地層圖元依經濟部中央地質調查所「工程地質探勘資料庫資料作業規範」(2008) 附錄B
+「工程地質圖元符號對照表」及「簡化地層使用工程地質圖元一覽表」繪製，套件內含全部 131 個圖元。</p>
+
+<h2>工具列按鈕</h2>
+<table class="grid">
+<tr><th>按鈕</th><th>功能</th></tr>
+<tr><td>地質剖面產製設定</td><td>開啟設定畫面，設定 MDB、地形、剖面線與輸出位置後產製剖面專案。</td></tr>
+<tr><td>顯示岩心照片</td><td>點選地圖上的地層（鑽孔柱狀圖）圖徵，於「岩心照片」視窗顯示對應深度的岩心箱照片。</td></tr>
+<tr><td>程式說明</td><td>顯示本說明。</td></tr>
+</table>
+
+<h2>操作步驟</h2>
+<h3>步驟 0　準備資料</h3>
+<ul>
+<li>Geo2020 匯出的 MDB 檔（例如 <code>NgeoextNew.MDB</code>）放在一個資料夾中。</li>
+<li>岩心箱照片（選用）：放在同一資料夾內，以各鑽孔為子資料夾。Geo2020 標準結構為
+<code>&lt;資料夾&gt;\&lt;計畫編號&gt;_Image\&lt;孔號&gt;\&lt;孔號&gt;-&lt;箱號&gt;….jpg</code>；
+任何名稱等於孔號的子資料夾（三層以內）也可被辨識。照片深度優先取自 MDB 的 drill_image 資料表，
+若無資料則以檔名中的箱號、每箱 7 m 推算。</li>
+<li>在 QGIS 中開啟（或新建）一個專案，載入 <b>數值地形</b>（DEM 網格，或含高程欄位的等高線線圖層）
+與 <b>剖面線</b>線圖層。剖面線須為投影座標（公尺，例如 TWD97 EPSG:3826），且有一個剖面名稱欄位（如 A、B、C）。
+剖面線的畫線方向即剖面由左（A）至右（A'）的方向。</li>
+</ul>
+
+<h3>步驟 1　選擇 Geo2020 MDB 資料夾</h3>
+<ul>
+<li>選擇資料夾後，套件自動找出 MDB 檔並讀取鑽孔資料（不需安裝 Microsoft Access 或 ODBC 驅動程式）。</li>
+<li>讀取後，在地圖區加入「Geo2020 鑽孔位置」圖層、標示孔號，並縮放到鑽孔範圍，可檢查鑽孔與剖面線的相對位置。</li>
+<li>鑽孔座標系統依 MDB 的 coord_system 自動判定（1 = TWD67 二度分帶、2 = UTM、3 = TWD97 二度分帶），可手動修改。</li>
+<li>若資料夾中有各鑽孔的岩心箱照片資料夾，會顯示照片數量；若沒有，會提醒您，產出專案的照片顯示功能將停用。</li>
+<li>MDB 含多個計畫時，可在「計畫」選單中只選一個計畫。</li>
+</ul>
+
+<h3>步驟 2　選擇數值地形</h3>
+<p>從目前專案的圖層中選擇 DEM（網格）或等高線（線）。選擇等高線時，須指定高程欄位；剖面地形以剖面線與等高線的交點線性內插。
+DEM 以雙線性內插取樣，取樣間距 0.25 m。</p>
+
+<h3>步驟 3　井口高程來源</h3>
+<ul>
+<li><b>數值地形</b>：柱狀圖頂端貼齊地形剖面線（建議，圖面一致）。</li>
+<li><b>Geo2020 MDB</b>：採用 MDB 的井口高程。若 MDB 高程與地形相差超過 2 m，執行訊息會提出警告；MDB 無高程的鑽孔改用地形高程。</li>
+</ul>
+
+<h3>步驟 4　剖面線與執行範圍</h3>
+<ul>
+<li>選擇剖面線圖層及名稱欄位。欄位值即輸出的專案檔名（可加前綴、後綴），以及剖面兩端的標示（A 與 A'）。</li>
+<li>選「全部剖面」產製圖層中所有剖面；選「只執行選取」則只產製目前選取 (Selected) 的剖面線。</li>
+</ul>
+
+<h3>步驟 5　鑽孔與剖面距離</h3>
+<p>以拉桿設定 5～50 m（預設 10 m）。鑽孔與剖面線的最近距離在此值以內者，投影到剖面線上繪製。</p>
+
+<h3>步驟 6　輸出資料夾</h3>
+<p>每條剖面輸出一個 <code>&lt;前綴&gt;&lt;剖面名稱&gt;&lt;後綴&gt;.qgz</code>；所有剖面的圖層都存入同一資料夾的
+<code>GroProfile.gpkg</code>。專案以相對路徑參照 GeoPackage，整個資料夾可搬移或複製給他人。</p>
+
+<h3>步驟 7　開始繪製地質剖面</h3>
+<ol>
+<li>先檢查所有設定，若有錯誤會列出需重新設定的項目並停止。</li>
+<li>若輸出的 QGZ 或 GroProfile.gpkg 已存在，詢問是否覆蓋（GroProfile.gpkg 只取代同名剖面的圖層）。</li>
+<li>依「地質剖面A_宜蘭」範本產出專案：圖層、樣式、版面配置（含圖例、比例尺、格線、剖面端點、孔號、地層名稱）。</li>
+<li>完成後可在結果清單中雙擊開啟專案，或按「開啟輸出資料夾」。</li>
+</ol>
+
+<h2>產出內容</h2>
+<table class="grid">
+<tr><th>專案圖層</th><th>GroProfile.gpkg 圖層</th><th>內容</th></tr>
+<tr><td>SPT (N1+N2+N3)</td><td>&lt;剖面&gt;_SPT</td><td>標準貫入試驗位置及擊數標註</td></tr>
+<tr><td>不連續面</td><td>&lt;剖面&gt;_不連續面</td><td>節理、劈理、岩脈等，依傾角旋轉繪示</td></tr>
+<tr><td>RQD</td><td>&lt;剖面&gt;_RQD</td><td>RQD 長條圖（3 m 寬 = 100%）</td></tr>
+<tr><td>地層</td><td>&lt;剖面&gt;_鑽孔柱狀圖</td><td>鑽孔柱狀圖，依工程地質圖元符號填繪；含深度、描述、風化程度、照片路徑</td></tr>
+<tr><td>地形剖面</td><td>&lt;剖面&gt;_地形剖面</td><td>地形線、土岩界線（地層界線）、地下水位面</td></tr>
+<tr><td>&lt;剖面&gt; — paths</td><td>&lt;剖面&gt;_paths</td><td>剖面路徑（端點標示用）</td></tr>
+<tr><td>（不顯示於圖例）</td><td>&lt;剖面&gt;_岩心照片</td><td>岩心箱照片清單（孔號、箱號、深度、路徑）</td></tr>
+</table>
+<p>剖面座標：X = 沿剖面線的里程 (m)，Y = 高程 (m)，水平與垂直比例 1:1。版面配置在「專案 → 版面管理器」中，可直接匯出 PDF / 圖片。</p>
+
+<h2>顯示岩心照片</h2>
+<ul>
+<li>開啟產出的剖面專案，按工具列「顯示岩心照片」，再點選地層（鑽孔柱狀圖）圖徵，右側「岩心照片」視窗即顯示該層深度範圍內的岩心箱照片；
+點擊照片可以系統看圖程式開啟原圖，拉桿可縮放。</li>
+<li>也可在地層圖徵上按右鍵 →「動作」→「顯示岩心照片」，或開啟地圖提示 (Map Tips) 直接預覽。</li>
+<li>照片路徑同時存為絕對路徑及相對 GroProfile.gpkg 的路徑；搬移資料夾時請保持兩者相對位置。</li>
+<li>產製時若沒有岩心箱照片資料夾，此功能會提示「岩心照片功能停用」。</li>
+</ul>
+
+<h2>MDB 讀取說明</h2>
+<p>套件內建純 Python 的 Access (Jet 4) 讀取器，Windows、macOS、Linux 都不需另外安裝驅動程式。
+若內建讀取器失敗，會改用 GDAL ODBC（需 Microsoft Access Database Engine）或 mdbtools。使用的資料表：</p>
+<p><code>dr_coord、measured_attribu、case_holes、drill_attributes、geol_graphic_log、geol_rock_soil_d、
+geol_weather_deg、geol_rqds、geol_rock_discon、std_proct_compac、water_tables、drill_image、kind</code></p>
+
+<h2>常見問題</h2>
+<ul>
+<li><b>剖面沒有鑽孔</b>：加大距離門檻，或檢查鑽孔座標系統與剖面線圖層座標系統是否正確（地圖上鑽孔點應落在剖面線附近）。</li>
+<li><b>柱狀圖高出地形</b>：選用 MDB 井口高程時可能發生，請核對 MDB 高程或改用數值地形。</li>
+<li><b>無法覆蓋檔案</b>：請先關閉正在使用 GroProfile.gpkg 的專案（開新專案）後再執行。</li>
+<li><b>地層圖例顯示「未定義圖元」</b>：MDB 中的地層代碼不在規範附錄B中，請檢查 geol_graphic_log 的 code 欄位。</li>
+</ul>
+</body>
+</html>

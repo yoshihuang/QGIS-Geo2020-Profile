@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#ffffff" stroke="#1f4e79" stroke-width="3"/>
+  <path d="M4 26 L16 20 L30 24 L44 16 L60 20 L60 60 L4 60 Z" fill="#f3e3b5"/>
+  <path d="M4 40 L20 36 L36 40 L60 34 L60 60 L4 60 Z" fill="#a9cfe9"/>
+  <path d="M4 26 L16 20 L30 24 L44 16 L60 20" fill="none" stroke="#000" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M4 40 L20 36 L36 40 L60 34" fill="none" stroke="#000" stroke-width="1.6" stroke-dasharray="3 2"/>
+  <rect x="25" y="22" width="9" height="34" fill="#fff" stroke="#000" stroke-width="2"/>
+  <rect x="25" y="22" width="9" height="16" fill="#e2c46f" stroke="#000" stroke-width="2"/>
+  <rect x="25" y="38" width="9" height="18" fill="#5a9fd0" stroke="#000" stroke-width="2"/>
+  <path d="M10 8 L10 14 M10 8 L54 8 L54 14" fill="none" stroke="#c00000" stroke-width="2.4"/>
+  <text x="5" y="16" font-family="Arial" font-weight="bold" font-size="9" fill="#c00000">A</text>
+  <text x="50" y="16" font-family="Arial" font-weight="bold" font-size="9" fill="#c00000">A'</text>
+</svg>

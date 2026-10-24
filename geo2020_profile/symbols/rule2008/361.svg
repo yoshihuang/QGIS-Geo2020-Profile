@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24" shape-rendering="crispEdges">
+<!-- 工程地質圖元 361 煤 (Coal) - 依「工程地質探勘資料庫資料作業規範」附錄B -->
+<g fill="param(fill) #000000" fill-opacity="param(fill-opacity) 1" stroke="none"><rect x="0" y="1" width="48" height="1"/><rect x="0" y="3" width="48" height="1"/><rect x="0" y="5" width="48" height="1"/><rect x="0" y="7" width="48" height="1"/><rect x="0" y="9" width="48" height="1"/><rect x="0" y="11" width="48" height="1"/><rect x="0" y="13" width="48" height="1"/><rect x="0" y="15" width="48" height="1"/><rect x="0" y="17" width="48" height="1"/><rect x="0" y="19" width="48" height="1"/><rect x="0" y="21" width="48" height="1"/><rect x="0" y="23" width="48" height="1"/></g>
+</svg>

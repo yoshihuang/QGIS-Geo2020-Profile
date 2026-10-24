@@ -1,0 +1,1181 @@
+[
+ {
+  "code": "001",
+  "zh": "土壤",
+  "en": "Soils",
+  "group": "0",
+  "group_name": "粗分類",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "010",
+  "zh": "岩盤",
+  "en": "Rocks",
+  "group": "0",
+  "group_name": "粗分類",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "101",
+  "zh": "巨礫",
+  "en": "Boulder",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "102",
+  "zh": "粗礫",
+  "en": "Cobble",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "103",
+  "zh": "礫石",
+  "en": "Gravel",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "104",
+  "zh": "砂",
+  "en": "Sand",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "0211050",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "105",
+  "zh": "粉土(粉砂)",
+  "en": "Silt",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "0211120",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "106",
+  "zh": "黏土",
+  "en": "Clay",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "0211130",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "107",
+  "zh": "有機黏土",
+  "en": "Organic Caly",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "108",
+  "zh": "有機粉土",
+  "en": "Organic Silt",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "109",
+  "zh": "有機砂",
+  "en": "Organic Sand",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "110",
+  "zh": "泥炭",
+  "en": "Peat",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "111",
+  "zh": "崩積物;岩屑堆積;碎屑",
+  "en": "Colluvium;Talus;Detritus",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "112",
+  "zh": "填方",
+  "en": "Fill",
+  "group": "1",
+  "group_name": "土壤或沉積物類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "202",
+  "zh": "砂質礫石",
+  "en": "Sandy Gravel",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211010",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "204",
+  "zh": "紅土礫石",
+  "en": "Lateritic Gravel",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "206",
+  "zh": "黏土質礫石",
+  "en": "Clayey Gravel",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211040",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "207",
+  "zh": "粉土質礫石",
+  "en": "Silty Gravel",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211030",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "222",
+  "zh": "礫質砂",
+  "en": "Pebbly Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "223",
+  "zh": "粗砂",
+  "en": "Coarse Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "224",
+  "zh": "中砂",
+  "en": "Medium Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "225",
+  "zh": "細砂",
+  "en": "Fine Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "227",
+  "zh": "粉土質砂",
+  "en": "Silty Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211070",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "228",
+  "zh": "黏土質砂",
+  "en": "Clayey Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211080",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "229",
+  "zh": "鈣質砂",
+  "en": "Calcareous Sand",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "242",
+  "zh": "砂質粉土",
+  "en": "Sandy Silt",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211090",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "244",
+  "zh": "黏土質粉土",
+  "en": "Clayey Silt",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211110",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "260",
+  "zh": "礫質黏土",
+  "en": "Gravelly Clay",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "262",
+  "zh": "砂質黏土",
+  "en": "Sandy Clay",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "264",
+  "zh": "粉土質黏土",
+  "en": "Silty Clay",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "0211100",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "266",
+  "zh": "紅土",
+  "en": "Laterite",
+  "group": "2",
+  "group_name": "土壤或沉積物類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "301",
+  "zh": "礫岩",
+  "en": "Conglomerate",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "302",
+  "zh": "角礫岩",
+  "en": "Breccia",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "303",
+  "zh": "砂岩",
+  "en": "Sandstone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "0212030",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "304",
+  "zh": "矽質砂岩",
+  "en": "Siliceous Sandstone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "305",
+  "zh": "長石砂岩",
+  "en": "Arkose",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "306",
+  "zh": "雜砂岩",
+  "en": "Greywacke",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "307",
+  "zh": "泥岩",
+  "en": "Mudstone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "308",
+  "zh": "粉砂岩",
+  "en": "Siltstone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "0212040",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "309",
+  "zh": "頁岩",
+  "en": "Shale",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "310",
+  "zh": "黏土岩",
+  "en": "Claystone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "311",
+  "zh": "火石",
+  "en": "Flint",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "312",
+  "zh": "燧石",
+  "en": "Chert",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "320",
+  "zh": "石灰岩",
+  "en": "Limestone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "0212110",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "321",
+  "zh": "白雲岩",
+  "en": "Dolomite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "0212120",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "322",
+  "zh": "鈣質泥岩",
+  "en": "Calcareous Mudstone",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "325",
+  "zh": "礫屑石灰岩",
+  "en": "Calcirudite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": false
+ },
+ {
+  "code": "326",
+  "zh": "砂屑石灰岩",
+  "en": "Calcarenite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": false
+ },
+ {
+  "code": "327",
+  "zh": "粉砂屑石灰岩",
+  "en": "Calcisiltite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": false
+ },
+ {
+  "code": "328",
+  "zh": "泥屑石灰岩",
+  "en": "Calcilutite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": false
+ },
+ {
+  "code": "329",
+  "zh": "白堊",
+  "en": "Chalk",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "341",
+  "zh": "集塊岩",
+  "en": "Agglomerate",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "342",
+  "zh": "火山角礫岩",
+  "en": "Volcanic Breccia",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "343",
+  "zh": "凝灰岩",
+  "en": "Tuff",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "0212400",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "344",
+  "zh": "細粒凝灰岩",
+  "en": "Fine-grained Tuff",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "345",
+  "zh": "極細粒凝灰岩",
+  "en": "Very fined-grained Tuff",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "351",
+  "zh": "岩鹽",
+  "en": "Halite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "352",
+  "zh": "硬石膏",
+  "en": "Anhydrite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "353",
+  "zh": "石膏",
+  "en": "Gypsum",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "361",
+  "zh": "煤",
+  "en": "Coal",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "362",
+  "zh": "褐煤",
+  "en": "Lignite",
+  "group": "3",
+  "group_name": "沉積岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "401",
+  "zh": "鈣質礫岩",
+  "en": "Calcareous Conglomerate",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "405",
+  "zh": "鈣質角礫岩",
+  "en": "Calcareous Breccia",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "412",
+  "zh": "粉砂質砂岩",
+  "en": "Silty Sandstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "414",
+  "zh": "泥質砂岩",
+  "en": "Argillaceous Sandstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "416",
+  "zh": "鈣質砂岩",
+  "en": "Calcareous Sandstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "418",
+  "zh": "凝灰質砂岩",
+  "en": "Tuffaceous Sandstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "420",
+  "zh": "砂岩夾頁岩",
+  "en": "S.S. interbedded with some Sh.",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "424",
+  "zh": "砂泥岩互層",
+  "en": "Alternations of S.S. & Mudstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "426",
+  "zh": "砂頁岩互層",
+  "en": "Alternations of S.S. & Sh.",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "428",
+  "zh": "頁岩夾砂岩",
+  "en": "Sh. interbedded with some S.S.",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "432",
+  "zh": "砂質粉砂岩",
+  "en": "Sandy Siltstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "434",
+  "zh": "泥質粉砂岩",
+  "en": "Argillaceous Siltstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "436",
+  "zh": "鈣質粉砂岩",
+  "en": "Calcareous Siltstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "442",
+  "zh": "砂質泥岩",
+  "en": "Sandy Mudstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "444",
+  "zh": "粉砂質泥岩",
+  "en": "Silty Mudstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "446",
+  "zh": "砂質頁岩",
+  "en": "Sandy Shale",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "449",
+  "zh": "碳質頁岩",
+  "en": "Carbonaceous Shale",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "462",
+  "zh": "砂質石灰岩",
+  "en": "Sandy Limestone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "464",
+  "zh": "泥質石灰岩",
+  "en": "Argillaceous Limestone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "465",
+  "zh": "泥灰岩",
+  "en": "Marlstone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "466",
+  "zh": "白雲石質石灰岩",
+  "en": "Dolomitic Limestone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "468",
+  "zh": "礁石灰岩",
+  "en": "Reef Limestone",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "472",
+  "zh": "砂質白雲岩",
+  "en": "Sandy Dolomite",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "474",
+  "zh": "泥質白雲岩",
+  "en": "Argillaceous Dolomite",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "476",
+  "zh": "鈣質白雲岩",
+  "en": "Calcareous Dolomite",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "482",
+  "zh": "砂質凝灰岩",
+  "en": "Sandy Tuff",
+  "group": "4",
+  "group_name": "沉積岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "501",
+  "zh": "片麻岩",
+  "en": "Gneiss",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "502",
+  "zh": "混合岩",
+  "en": "Migmatite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "503",
+  "zh": "片岩",
+  "en": "Schist",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "504",
+  "zh": "千枚岩",
+  "en": "Phyllite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "505",
+  "zh": "板岩",
+  "en": "Slate",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "506",
+  "zh": "糜稜岩",
+  "en": "Mylonite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "507",
+  "zh": "硬泥岩(硬頁岩)",
+  "en": "Argillite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "511",
+  "zh": "大理石",
+  "en": "Marble",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "512",
+  "zh": "石英岩",
+  "en": "Quartzite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "513",
+  "zh": "粒變岩",
+  "en": "Granuite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "514",
+  "zh": "角頁岩",
+  "en": "Hornfels",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "515",
+  "zh": "角閃岩",
+  "en": "Amphibolite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "516",
+  "zh": "蛇紋岩",
+  "en": "Serpentinite",
+  "group": "5",
+  "group_name": "變質岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "602",
+  "zh": "變質燧石",
+  "en": "Metachert",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "604",
+  "zh": "變質輝綠岩",
+  "en": "Metadiabase",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "606",
+  "zh": "變質閃長岩",
+  "en": "Metadiorite",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "624",
+  "zh": "藍閃石片岩",
+  "en": "Glaucophane Schist",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "625",
+  "zh": "石英片岩",
+  "en": "Quartzitic Schist",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "626",
+  "zh": "絹雲母片岩",
+  "en": "Sericitic Schist",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "627",
+  "zh": "綠泥石片岩",
+  "en": "Chlorite Schist",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "685",
+  "zh": "脈狀花崗片麻岩",
+  "en": "Veined Granitic Gneiss",
+  "group": "6",
+  "group_name": "變質岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "700",
+  "zh": "深成岩",
+  "en": "Plutonic Rocks",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": false
+ },
+ {
+  "code": "701",
+  "zh": "花崗岩",
+  "en": "Granite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "702",
+  "zh": "微花崗岩",
+  "en": "Microgranite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "703",
+  "zh": "流紋岩",
+  "en": "Rhyolite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "0212320",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "704",
+  "zh": "黑曜岩",
+  "en": "Obsidian",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "705",
+  "zh": "偉晶花崗岩",
+  "en": "Pegmatite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "706",
+  "zh": "正長岩",
+  "en": "Syenite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "0212330",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "711",
+  "zh": "閃長岩",
+  "en": "Diorite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "712",
+  "zh": "微閃長岩",
+  "en": "Microdiorite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "713",
+  "zh": "安山岩",
+  "en": "Andesite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "714",
+  "zh": "火山玻璃",
+  "en": "Volcanic glass",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "715",
+  "zh": "粗面岩",
+  "en": "Trachyte",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "0212340",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "721",
+  "zh": "輝長岩",
+  "en": "Gabbro",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "722",
+  "zh": "粗粒玄武岩",
+  "en": "Dolerite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "723",
+  "zh": "玄武岩",
+  "en": "Basalt",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "731",
+  "zh": "超基性岩",
+  "en": "Ultrabasic Rocks",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "732",
+  "zh": "輝石岩",
+  "en": "Pyroxenite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "733",
+  "zh": "橄欖岩",
+  "en": "Peridotite",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "740",
+  "zh": "火山岩",
+  "en": "Volcanic Rocks",
+  "group": "7",
+  "group_name": "火成岩類(基本型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "802",
+  "zh": "石英安山岩",
+  "en": "Dacite",
+  "group": "8",
+  "group_name": "火成岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "804",
+  "zh": "輝綠岩",
+  "en": "Diabase",
+  "group": "8",
+  "group_name": "火成岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "806",
+  "zh": "煌斑岩",
+  "en": "Lamprophyre",
+  "group": "8",
+  "group_name": "火成岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ },
+ {
+  "code": "884",
+  "zh": "石英脈",
+  "en": "Quartz Vein",
+  "group": "8",
+  "group_name": "火成岩類(混合衍生與變異型)",
+  "simplified": "",
+  "in_rule2008_table": true
+ }
+]
