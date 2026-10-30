@@ -240,6 +240,8 @@ class StructureBuilder(object):
         right = [dict() for _ in H]
         left = [dict() for _ in H]
         for i in range(len(H) - 1):
+            if H[i + 1]["x"] - H[i]["x"] < self.col_w:
+                continue  # overlapping columns: correlating them would draw a vertical zig-zag
             for a, b in _match(H[i]["contacts"], H[i + 1]["contacts"]):
                 pa = (H[i]["x"], H[i]["contacts"][a][1])
                 pb = (H[i + 1]["x"], H[i + 1]["contacts"][b][1])
@@ -273,12 +275,13 @@ class StructureBuilder(object):
         v = direction(a)
         v = (v[0] * side, v[1] * side)
         t = list(terms)
-        # a neighbouring borehole whose logged interval is crossed but does not show this contact
-        j = hole_idx + side
-        if 0 <= j < len(self.holes):
-            n = self.holes[j]
-            xe = n["x"] - side * self.col_w / 2.0
-            t.append(("鄰孔", [(xe, n["z"]), (xe, n["bottom_z"])]))
+        # any borehole further along whose logged interval would be crossed: the contact cannot pass
+        # through a log that does not show it at that depth (overlapping columns are ignored)
+        x0 = self.holes[hole_idx]["x"]
+        for n in self.holes:
+            if (n["x"] - x0) * side >= self.col_w:
+                xe = n["x"] - side * self.col_w / 2.0
+                t.append(("鄰孔", [(xe, n["z"]), (xe, n["bottom_z"])]))
         return cast(p, v, t, self.box)
 
     # ------------------------------------------------------------ 6. apparent-dip form lines

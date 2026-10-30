@@ -56,7 +56,7 @@ code { background: #f2f2f2; }
 <h3>步驟 1　選擇 Geo2020 MDB 資料夾</h3>
 <ul>
 <li>選擇資料夾後，套件自動找出 MDB 檔並讀取鑽孔資料（不需安裝 Microsoft Access 或 ODBC 驅動程式）。</li>
-<li>讀取後，在地圖區加入「Geo2020 鑽孔位置」圖層、標示孔號，並縮放到鑽孔範圍，可檢查鑽孔與剖面線的相對位置。</li>
+<li>讀取後，在地圖區加入「Geo2020 鑽孔位置」圖層（產製完成後會存入 GroProfile.gpkg）、標示孔號，並縮放到鑽孔範圍，可檢查鑽孔與剖面線的相對位置。</li>
 <li>鑽孔座標系統依 MDB 的 coord_system 自動判定（1 = TWD67 二度分帶、2 = UTM、3 = TWD97 二度分帶），可手動修改。</li>
 <li>若資料夾中有各鑽孔的岩心箱照片資料夾，會顯示照片數量；若沒有，會提醒您，產出專案的照片顯示功能將停用。</li>
 <li>MDB 含多個計畫時，可在「計畫」選單中只選一個計畫。</li>
@@ -151,6 +151,7 @@ geol_weather_deg、geol_rqds、geol_rock_discon、std_proct_compac、water_table
 <ul>
 <li><b>剖面沒有鑽孔</b>：加大距離門檻，或檢查鑽孔座標系統與剖面線圖層座標系統是否正確（地圖上鑽孔點應落在剖面線附近）。</li>
 <li><b>柱狀圖高出地形</b>：選用 MDB 井口高程時可能發生，請核對 MDB 高程或改用數值地形。</li>
+<li><b>出現「座標相同」或「柱狀圖重疊」警告</b>：通常是 MDB 的 dr_coord／measured_attribu 複製時沒改到座標，請修正 MDB 後重跑；重疊的鑽孔之間不會做地層對比。</li>
 <li><b>無法覆蓋檔案</b>：請先關閉正在使用 GroProfile.gpkg 的專案（開新專案）後再執行。</li>
 <li><b>地層圖例顯示「未定義圖元」</b>：MDB 中的地層代碼不在規範附錄B中，請檢查 geol_graphic_log 的 code 欄位。</li>
 </ul>

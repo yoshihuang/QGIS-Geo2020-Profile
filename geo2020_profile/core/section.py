@@ -223,6 +223,10 @@ class SectionBuilder(object):
                 z = z_dem
             self.holes.append({"b": b, "ch": ch, "dist": dist, "z": round(z, 3), "z_dem": z_dem})
         self.holes.sort(key=lambda h: h["ch"])
+        for h1, h2 in zip(self.holes, self.holes[1:]):
+            if h2["ch"] - h1["ch"] < self.col_w:
+                self.warnings.append("剖面 %s：鑽孔 %s 與 %s 投影位置僅相距 %.1f m，柱狀圖重疊，兩孔間不做地層對比" % (
+                    self.name, h1["b"].hole_no, h2["b"].hole_no, h2["ch"] - h1["ch"]))
         return self
 
     # ---------------------------------------------------------------- structure

@@ -705,12 +705,38 @@ class MainDialog(QDialog):
                 "Geo2020 地質剖面", "已產製 %d 個地質剖面專案於 %s" % (len(ok), cfg.out_dir))
         if bad:
             QMessageBox.warning(self, "部分剖面失敗", "\n".join("%s：%s" % (r["name"], r.get("error")) for r in bad))
+        if ok:
+            self._persist_holes_layer(cfg.gpkg_path)
         if ok and self.open_after.isChecked():
             self._open_project(ok[0]["qgz"])
+
+    def _persist_holes_layer(self, gpkg):
+        """The borehole layer starts as a memory layer (lost when the project is reopened):
+        save it into the output GeoPackage and point the map layer at the saved copy."""
+        lyr = QgsProject.instance().mapLayer(self.holes_layer_id) if self.holes_layer_id else None
+        if lyr is None or lyr.providerType() != "memory":
+            return
+        try:
+            from qgis.core import QgsVectorFileWriter
+            opts = QgsVectorFileWriter.SaveVectorOptions()
+            opts.driverName = "GPKG"
+            opts.layerName = "鑽孔位置"
+            opts.fileEncoding = "UTF-8"
+            opts.actionOnExistingFile = _e(QgsVectorFileWriter, "ActionOnExistingFile", "CreateOrOverwriteLayer")
+            res = QgsVectorFileWriter.writeAsVectorFormatV3(lyr, gpkg, QgsProject.instance().transformContext(), opts)
+            if res[0] != _e(QgsVectorFileWriter, "WriterError", "NoError"):
+                raise RuntimeError(res[1])
+            lyr.setDataSource("%s|layername=鑽孔位置" % gpkg, lyr.name(), "ogr")
+            self._log("鑽孔位置圖層已存入 %s（鑽孔位置）" % os.path.basename(gpkg))
+        except Exception as e:  # keep the memory layer
+            log_exception("鑽孔位置圖層存檔", e)
+            self._log("⚠ 鑽孔位置圖層仍為暫存圖層，存專案前請另存：%s" % e)
 
     def _outputs_open_in_project(self, cfg, plans):
         gp = os.path.normcase(os.path.abspath(cfg.gpkg_path))
         for lyr in QgsProject.instance().mapLayers().values():
+            if lyr.customProperty(LAYER_PROP):
+                continue  # the plugin's own borehole layer only reads the GeoPackage
             src = lyr.source().split("|")[0]
             if src and os.path.normcase(os.path.abspath(src)) == gp:
                 return True

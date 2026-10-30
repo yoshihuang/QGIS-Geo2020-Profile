@@ -232,6 +232,21 @@ class Geo2020Data(object):
             b.rqd.sort()
             b.discon.sort()
             b.spt.sort(key=lambda s: s["top"])
+        self._check_duplicates()
+
+    def _check_duplicates(self):
+        """Warn about boreholes sharing the same coordinates (usually a copy error in the MDB)."""
+        groups = {}
+        for b in self.holes.values():
+            if b.x is not None and b.y is not None:
+                groups.setdefault((b.proj_no, round(b.x, 1), round(b.y, 1)), []).append(b)
+        for (p, x, y), bs in sorted(groups.items()):
+            if len(bs) > 1:
+                names = "、".join(sorted(b.hole_no for b in bs))
+                same_z = len(set(b.elev_mdb for b in bs)) == 1
+                self.warnings.append("鑽孔 %s 的座標相同 (%.1f, %.1f)%s，可能是 MDB 輸入錯誤，"
+                                     "請檢查 dr_coord / measured_attribu" % (
+                                         names, x, y, "且井口高程也相同" if same_z else ""))
 
     # ------------------------------------------------------------------
     def usable_holes(self, proj_filter=None):
@@ -318,7 +333,27 @@ class Geo2020Data(object):
             if b.photos:
                 n_holes += 1
                 n_photos += len(b.photos)
+                gaps = _photo_gaps(b)
+                if gaps:
+                    self.warnings.append("鑽孔 %s 缺少 %s 的岩心照片" % (
+                        b.hole_no, "、".join("%.1f～%.1f m" % g for g in gaps)))
         return n_holes, n_photos
+
+
+def _photo_gaps(b, tol=0.5):
+    """Depth intervals of a borehole not covered by any core-box photo."""
+    iv = sorted((p["top"], p["bottom"]) for p in b.photos if p["top"] is not None and p["bottom"] is not None)
+    if not iv:
+        return []
+    gaps, cur = [], 0.0
+    for t, bt in iv:
+        if t - cur > tol:
+            gaps.append((cur, t))
+        cur = max(cur, bt)
+    end = b.bottom_depth()
+    if end - cur > tol:
+        gaps.append((cur, end))
+    return gaps
 
 
 def _best_overlap(items, top, bottom):
