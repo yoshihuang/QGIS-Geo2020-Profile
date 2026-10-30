@@ -226,6 +226,7 @@ class Geo2020Data(object):
             if b.water_depth is None or d >= getattr(b, "_wt_date", ""):
                 b.water_depth = _f(r.get("wt_depth"))
                 b._wt_date = d
+                b._wt_elev = _f(r.get("elevation"))
         self._images = self._rows("drill_image")
 
         for b in self.holes.values():
@@ -233,6 +234,13 @@ class Geo2020Data(object):
             b.discon.sort()
             b.spt.sort(key=lambda s: s["top"])
         self._check_duplicates()
+        for b in sorted(self.holes.values(), key=lambda h: h.hole_no):
+            we = getattr(b, "_wt_elev", None)
+            if we is not None and b.elev_mdb is not None and b.water_depth is not None \
+                    and abs(b.elev_mdb - b.water_depth - we) > 0.2:
+                self.warnings.append("鑽孔 %s 水位紀錄不一致：井口高程 %.2f − 水位深度 %.2f = %.2f m，"
+                                     "但 water_tables.elevation 為 %.2f m（剖面以水位深度繪製）" % (
+                                         b.hole_no, b.elev_mdb, b.water_depth, b.elev_mdb - b.water_depth, we))
 
     def _check_duplicates(self):
         """Warn about boreholes sharing the same coordinates (usually a copy error in the MDB)."""
