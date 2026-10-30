@@ -6,7 +6,7 @@ import time
 from qgis.PyQt.QtCore import QCoreApplication, Qt, QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox, QComboBox, QDialog,
-                                 QFormLayout, QGroupBox, QHBoxLayout, QLabel,
+                                 QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel,
                                  QLineEdit, QListWidget, QListWidgetItem, QMessageBox,
                                  QPlainTextEdit, QProgressBar, QPushButton, QRadioButton,
                                  QScrollArea, QSlider, QSpinBox, QTabWidget, QVBoxLayout, QWidget)
@@ -193,8 +193,45 @@ class MainDialog(QDialog):
         tip.setStyleSheet("color:#666;")
         lay.addWidget(tip)
 
-        # 6 ------------------------------------------------------- output
-        g6 = QGroupBox("6. 輸出資料夾（QGZ 專案檔 + %s）" % runner.GPKG_NAME)
+        # 6 ------------------------------------------------------- attitudes
+        g_att = QGroupBox("6. 代表位態（岩層界線、地層視傾角、斷層的延伸方向）")
+        v_att = QVBoxLayout(g_att)
+        self.rock_box = QGroupBox("岩層代表位態（層理／劈理）")
+        self.rock_box.setCheckable(True)
+        self.rock_box.setChecked(False)
+        h_r = QHBoxLayout(self.rock_box)
+        self.rock_dd = self._angle_spin(360.0, "傾向（dip direction）")
+        self.rock_dip = self._angle_spin(90.0, "傾角（dip）")
+        h_r.addWidget(QLabel("傾向"))
+        h_r.addWidget(self.rock_dd)
+        h_r.addWidget(QLabel("傾角"))
+        h_r.addWidget(self.rock_dip)
+        h_r.addStretch(1)
+        v_att.addWidget(self.rock_box)
+        self.core_angle = QCheckBox("各層理／劈理點的視傾角改用 MDB 實測傾角計算（方向仍依代表位態）")
+        v_att.addWidget(self.core_angle)
+        self.fault_box = QGroupBox("斷層代表位態（MDB 有斷層／斷層帶紀錄時用來延伸斷層線）")
+        self.fault_box.setCheckable(True)
+        self.fault_box.setChecked(False)
+        h_f = QHBoxLayout(self.fault_box)
+        self.fault_dd = self._angle_spin(360.0, "斷層傾向")
+        self.fault_dip = self._angle_spin(90.0, "斷層傾角")
+        self.fault_dip.setValue(70.0)
+        h_f.addWidget(QLabel("傾向"))
+        h_f.addWidget(self.fault_dd)
+        h_f.addWidget(QLabel("傾角"))
+        h_f.addWidget(self.fault_dip)
+        h_f.addStretch(1)
+        v_att.addWidget(self.fault_box)
+        tip2 = QLabel("位態以方位角表示（例：傾向 120°、傾角 35°）。程式依各剖面的方位計算視傾角，決定岩層向哪一側傾斜；"
+                      "未輸入時，岩層界線以水平延伸，且不繪製地層視傾角線與斷層延伸線。")
+        tip2.setWordWrap(True)
+        tip2.setStyleSheet("color:#666;")
+        v_att.addWidget(tip2)
+        lay.addWidget(g_att)
+
+        # 7 ------------------------------------------------------- output
+        g6 = QGroupBox("7. 輸出資料夾（QGZ 專案檔 + %s）" % runner.GPKG_NAME)
         f6 = QFormLayout(g6)
         self.out_w = QgsFileWidget()
         self.out_w.setStorageMode(_e(QgsFileWidget, "StorageMode", "GetDirectory"))
@@ -260,6 +297,17 @@ class MainDialog(QDialog):
         btns.addWidget(self.close_btn)
         outer.addLayout(btns)
 
+    @staticmethod
+    def _angle_spin(maximum, tip):
+        sp = QDoubleSpinBox()
+        sp.setRange(0.0, maximum)
+        sp.setDecimals(1)
+        sp.setSingleStep(1.0)
+        sp.setSuffix("°")
+        sp.setToolTip(tip)
+        sp.setMinimumWidth(90)
+        return sp
+
     def _connect(self):
         self.folder_w.fileChanged.connect(self._folder_changed)
         self.mdb_cb.activated.connect(lambda *_: self.load_mdb())
@@ -289,6 +337,13 @@ class MainDialog(QDialog):
         self.suffix.setText(s.value(SKEY + "suffix", ""))
         self.colored.setChecked(s.value(SKEY + "colored", True, type=bool))
         self.open_after.setChecked(s.value(SKEY + "open_after", False, type=bool))
+        self.rock_box.setChecked(s.value(SKEY + "rock_on", False, type=bool))
+        self.rock_dd.setValue(float(s.value(SKEY + "rock_dd", 0.0)))
+        self.rock_dip.setValue(float(s.value(SKEY + "rock_dip", 0.0)))
+        self.fault_box.setChecked(s.value(SKEY + "fault_on", False, type=bool))
+        self.fault_dd.setValue(float(s.value(SKEY + "fault_dd", 0.0)))
+        self.fault_dip.setValue(float(s.value(SKEY + "fault_dip", 70.0)))
+        self.core_angle.setChecked(s.value(SKEY + "core_angle", False, type=bool))
         if s.value(SKEY + "elev", "dem") == "mdb":
             self.elev_mdb.setChecked(True)
         out = s.value(SKEY + "out_dir", "")
@@ -309,6 +364,13 @@ class MainDialog(QDialog):
         s.setValue(SKEY + "colored", self.colored.isChecked())
         s.setValue(SKEY + "open_after", self.open_after.isChecked())
         s.setValue(SKEY + "elev", "mdb" if self.elev_mdb.isChecked() else "dem")
+        s.setValue(SKEY + "rock_on", self.rock_box.isChecked())
+        s.setValue(SKEY + "rock_dd", self.rock_dd.value())
+        s.setValue(SKEY + "rock_dip", self.rock_dip.value())
+        s.setValue(SKEY + "fault_on", self.fault_box.isChecked())
+        s.setValue(SKEY + "fault_dd", self.fault_dd.value())
+        s.setValue(SKEY + "fault_dip", self.fault_dip.value())
+        s.setValue(SKEY + "core_angle", self.core_angle.isChecked())
         s.setValue(SKEY + "out_dir", self.out_w.filePath())
         s.setValue(SKEY + "folder", self.folder_w.filePath())
 
@@ -542,6 +604,9 @@ class MainDialog(QDialog):
             prefix=self.prefix.text().strip(),
             suffix=self.suffix.text().strip(),
             colored=self.colored.isChecked(),
+            rock_attitude=(self.rock_dd.value(), self.rock_dip.value()) if self.rock_box.isChecked() else None,
+            fault_attitude=(self.fault_dd.value(), self.fault_dip.value()) if self.fault_box.isChecked() else None,
+            use_core_angle=self.core_angle.isChecked(),
             geo=self.geo,
             transform_context=QgsProject.instance().transformContext())
 

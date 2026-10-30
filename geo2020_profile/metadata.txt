@@ -5,7 +5,7 @@ qgisMaximumVersion=4.99
 description=由 Geo2020 工程地質探勘資料庫 (MDB) 批次產製地質剖面 QGIS 專案檔與 GeoPackage。Builds geological cross-section QGIS projects from Geo2020 borehole databases (MDB).
 about=讀取經濟部地質調查及礦業管理中心 Geo2020「工程地質探勘資料庫」MDB 檔（內建純 Python Access 讀取器，免安裝 ODBC），在地圖上顯示鑽孔位置，並依剖面線、數值地形 (DEM 或等高線) 批次產生地質剖面 QGIS 專案檔 (.qgz)，所有圖層存入 GroProfile.gpkg。剖面包含鑽孔柱狀圖（依 2008 資料作業規範附錄B 工程地質圖元符號，內含全部 131 個圖元）、地形線、土岩界線、地下水位、RQD、SPT、不連續面，以及含圖例、比例尺、格線的版面配置。另提供岩心箱照片檢視工具：點選地層即顯示對應深度的岩心照片。
  Reads Taiwan Geo2020 engineering-geology borehole databases (Access MDB, built-in pure-Python reader, no ODBC needed), shows borehole locations, and batch-generates one geological cross-section project per section line using a DEM or contour layer. Layers (strata columns with the official Geo2020 lithology patterns, terrain, soil/rock interface, groundwater, RQD, SPT, discontinuities) are stored in a single GeoPackage and each project includes a print layout. A core-box photo viewer shows the core photos of a clicked stratum.
-version=1.0.2
+version=1.1.0
 author=Yoshi
 email=yoshi.hml@gmail.com
 homepage=https://github.com/yoshihuang/QGIS-Geo2020-Profile
@@ -19,7 +19,13 @@ deprecated=False
 hasProcessingProvider=no
 supportsQt6=True
 server=False
-changelog=1.0.2
+changelog=1.1.0
+ - 新增岩層／斷層代表位態輸入，依剖面方位計算視傾角並判定傾斜方向。
+ - 地形剖面新增岩層間界線（鑽孔間對比連線，未對比者依視傾角延伸至斷層、土岩界面、地表、剖面邊界或鄰孔）。
+ - 新增斷層線、地層視傾角線（層理／劈理等），以及節理、剪力面、裂隙、岩脈等各類不連續面；圖例只列出有資料的類別。
+ - 層理／劈理符號依視傾角方向旋轉；地形剖面圖層新增終止原因等欄位。
+ - 修正圖例尺寸估算偏小，避免圖例與剖面標示重疊。
+ 1.0.2
  - 程式碼品質：修正 Flake8 E741（變數命名）。
  1.0.1
  - 修正 Qt6 / QGIS 4 相容性（列舉值改用 scoped 寫法）；通過 Bandit 安全掃描（移除 subprocess 後備讀取器、不再靜默略過例外）。

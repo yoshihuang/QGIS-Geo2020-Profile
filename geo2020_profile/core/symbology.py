@@ -13,7 +13,7 @@ import os
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.core import (QgsCategorizedSymbolRenderer, QgsFillSymbol, QgsMarkerSymbol,
+from qgis.core import (QgsCategorizedSymbolRenderer, QgsFillSymbol, QgsLineSymbol, QgsMarkerSymbol,
                        QgsProperty, QgsRendererCategory, QgsSimpleFillSymbolLayer,
                        QgsSimpleMarkerSymbolLayer, QgsSVGFillSymbolLayer, QgsSymbolLayer,
                        QgsUnitTypes)
@@ -156,7 +156,42 @@ def discon_renderer(type_names, field="TYPE", dip_field="DIP"):
         lyr.setStrokeWidth(width)
         lyr.setStrokeWidthUnit(_MM)
         lyr.setDataDefinedProperty(_ANGLE_PROP,
-                                   QgsProperty.fromExpression('90 - coalesce("%s", 0)' % dip_field))
+                                   QgsProperty.fromExpression(
+                                       'coalesce(90 + "視傾角", 90 - coalesce("%s", 0))' % dip_field))
         sym.appendSymbolLayer(lyr)
         cats.append(QgsRendererCategory(name, sym, name))
     return QgsCategorizedSymbolRenderer(field, cats)
+
+
+# 地形剖面 line types (drawing order of the legend follows the construction order)
+TERRAIN_ORDER = ["地形", "地層界線", "不整合面", "斷層", "地層視傾角", "剪力面", "岩脈", "節理", "裂隙", "張裂隙",
+                 "開挖面", "地下水位面"]
+TERRAIN_EXTRA_STYLE = {   # types not in the template style: (color, width mm, pen style)
+    "剪力面": ("#d7191c", 0.45, "dash dot"),
+    "岩脈": ("#e66101", 0.7, "solid"),
+    "節理": ("#000000", 0.3, "solid"),
+    "裂隙": ("#666666", 0.3, "solid"),
+    "張裂隙": ("#666666", 0.3, "dash"),
+}
+
+
+def adjust_terrain_renderer(layer, present):
+    """Keep only line types that have data; add categories for discontinuity types missing in the template."""
+    r = layer.renderer()
+    if not isinstance(r, QgsCategorizedSymbolRenderer):
+        return
+    present = set(present) | {"地形"}
+    cats = {c.value(): c for c in r.categories()}
+    new = []
+    for t in TERRAIN_ORDER + sorted(present - set(TERRAIN_ORDER)):
+        if t not in present:
+            continue
+        if t in cats:
+            c = cats[t]
+            new.append(QgsRendererCategory(c.value(), c.symbol().clone(), c.label(), True))
+        else:
+            color, width, style = TERRAIN_EXTRA_STYLE.get(t, ("#555555", 0.3, "solid"))
+            sym = QgsLineSymbol.createSimple({"line_color": color, "line_width": str(width),
+                                              "line_width_unit": "MM", "line_style": style})
+            new.append(QgsRendererCategory(t, sym, t, True))
+    layer.setRenderer(QgsCategorizedSymbolRenderer(r.classAttribute(), new))

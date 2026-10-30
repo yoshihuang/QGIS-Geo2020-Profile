@@ -14,6 +14,7 @@ import math
 from qgis.core import (QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsPointXY,
                        QgsProject, QgsRasterLayer)
 
+from .structure import FABRIC_TYPES, StructureBuilder, apparent_dip, azimuth
 from .symbology import code_name, normalize_code
 
 
@@ -186,6 +187,10 @@ class SectionBuilder(object):
         self.col_w = s.get("column_width", 2.0)
         self.rqd_w = s.get("rqd_width", 3.0)
         self.elev_source = s.get("elev_source", "dem")
+        self.rock_att = s.get("rock_attitude")        # (dip_dir, dip) or None
+        self.fault_att = s.get("fault_attitude")      # (dip_dir, dip) or None
+        self.use_core_angle = s.get("use_core_angle", False)
+        self._struct = None
         self.begin = s.get("begin_label") or name
         self.end = s.get("end_label") or (name + "'")
         self.warnings = []
@@ -219,6 +224,51 @@ class SectionBuilder(object):
             self.holes.append({"b": b, "ch": ch, "dist": dist, "z": round(z, 3), "z_dem": z_dem})
         self.holes.sort(key=lambda h: h["ch"])
         return self
+
+    # ---------------------------------------------------------------- structure
+    def az_at(self, c):
+        """Map azimuth of the section line at chainage c (local segment)."""
+        pts = self.line.asPolyline()
+        acc = 0.0
+        for i in range(len(pts) - 1):
+            seg = math.hypot(pts[i + 1].x() - pts[i].x(), pts[i + 1].y() - pts[i].y())
+            if c <= acc + seg or i == len(pts) - 2:
+                return azimuth((pts[i].x(), pts[i].y()), (pts[i + 1].x(), pts[i + 1].y()))
+            acc += seg
+        return 0.0
+
+    def frame_bottom(self):
+        zmin, zmax = self.z_range()
+        return zmin - max(1.0, 0.06 * max(zmax - zmin, 1.0))
+
+    def structure(self):
+        """Faults, rock contacts, apparent-dip form lines and discontinuity ticks (see structure.py)."""
+        if self._struct is not None:
+            return self._struct
+        holes = []
+        for h in self.holes:
+            b = h["b"]
+            holes.append({"x": h["ch"], "z": h["z"], "bottom_z": h["z"] - b.bottom_depth(), "name": b.hole_no,
+                          "contacts": _rock_contacts(b.layers, h["z"]),
+                          "discon": [(d, c, n, a) for d, c, n, a in b.discon]})
+        sr = self._soil_rock_line()
+        sr = [(p.x(), p.y()) for p in sr] if sr else None
+        top = max(self.topo) + 5.0
+        st = StructureBuilder(holes, (self.ch, self.topo), sr, (0.0, self.frame_bottom(), self.length, top),
+                              self.az_at, self.rock_att, self.fault_att, self.use_core_angle, self.col_w).build()
+        for n in st.notes:
+            self.warnings.append("剖面 %s：%s" % (self.name, n))
+        self._struct = st
+        return st
+
+    def attitude_summary(self):
+        if not self.rock_att:
+            return ""
+        az = self.az_at(self.length / 2.0)
+        a = apparent_dip(self.rock_att[0], self.rock_att[1], az)
+        side = "%s側" % (self.end if a > 0 else self.begin) if abs(a) > 0.05 else "水平"
+        return "剖面方位 %.0f°，岩層位態 %03.0f/%.0f → 視傾角 %.1f°（向 %s傾斜）" % (
+            az, self.rock_att[0], self.rock_att[1], abs(a), side)
 
     # ---------------------------------------------------------------- outputs
     def strata_features(self):
@@ -290,9 +340,13 @@ class SectionBuilder(object):
             b, x, z = h["b"], h["ch"], h["z"]
             for depth, code, name, dip in b.discon:
                 y = z - depth
+                app = None
+                if self.rock_att and code in FABRIC_TYPES:
+                    d = dip if (self.use_core_angle and dip is not None) else self.rock_att[1]
+                    app = round(apparent_dip(self.rock_att[0], d, self.az_at(x)), 1)
                 out.append((QgsGeometry.fromPointXY(QgsPointXY(x, y)), {
                     "X": round(x, 2), "井口高程": z, "深度": depth, "Y": round(y, 2), "DIP": dip,
-                    "TYPE": name, "代碼": code, "孔號": b.hole_no}))
+                    "TYPE": name, "代碼": code, "孔號": b.hole_no, "視傾角": app}))
         return out
 
     def terrain_features(self):
@@ -305,6 +359,14 @@ class SectionBuilder(object):
         wt = self._water_line()
         if wt:
             out.append((QgsGeometry.fromMultiPolylineXY([wt]), {"id": 3, "type": "地下水位面"}))
+        if sr:
+            out[1][1]["類別"] = "土岩界面"
+        fid = 10
+        for typ, pts, attrs in self.structure().lines:
+            a = {"id": fid, "type": typ}
+            a.update(attrs)
+            out.append((QgsGeometry.fromMultiPolylineXY([[QgsPointXY(x, z) for x, z in pts]]), a))
+            fid += 1
         return out
 
     def paths_features(self):
@@ -402,3 +464,8 @@ class SectionBuilder(object):
         return "剖面 %s：長 %.1f m，納入鑽孔 %s" % (
             self.name, self.length,
             "、".join("%s(距 %.1f m)" % (h["b"].hole_no, h["dist"]) for h in self.holes) or "無")
+
+
+def _rock_contacts(layers, z_collar):
+    from .structure import rock_contacts
+    return rock_contacts([dict(lay, code=normalize_code(lay["code"])) for lay in layers], z_collar)

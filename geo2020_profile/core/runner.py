@@ -35,6 +35,9 @@ class RunConfig(object):
         self.step = float(kw.get("step", 0.25))
         self.column_width = float(kw.get("column_width", 2.0))
         self.colored = kw.get("colored", True)
+        self.rock_attitude = kw.get("rock_attitude")    # (dip_dir, dip) or None
+        self.fault_attitude = kw.get("fault_attitude")  # (dip_dir, dip) or None
+        self.use_core_angle = kw.get("use_core_angle", False)
         self.geo = kw.get("geo")                            # cached Geo2020Data
         self.transform_context = kw.get("transform_context") or QgsProject.instance().transformContext()
 
@@ -159,9 +162,11 @@ def validate(cfg):
     # 6. distance
     if not (5 <= cfg.buffer <= 50):
         errs.append(("5. 鑽孔與剖面距離", "距離需介於 5 ~ 50 公尺"))
-    # 7. output
+    for label, att in (("6. 岩層代表位態", cfg.rock_attitude), ("6. 斷層代表位態", cfg.fault_attitude)):
+        if att is not None and not (0 <= att[0] <= 360 and 0 <= att[1] <= 90):
+            errs.append((label, "傾向需介於 0～360°、傾角需介於 0～90°"))
     if not cfg.out_dir:
-        errs.append(("6. 輸出資料夾", "請選擇輸出資料夾"))
+        errs.append(("7. 輸出資料夾", "請選擇輸出資料夾"))
     else:
         try:
             os.makedirs(cfg.out_dir, exist_ok=True)
@@ -170,9 +175,9 @@ def validate(cfg):
                 fh.write("ok")
             os.remove(test)
         except Exception as e:
-            errs.append(("6. 輸出資料夾", "無法寫入輸出資料夾：%s" % e))
+            errs.append(("7. 輸出資料夾", "無法寫入輸出資料夾：%s" % e))
     if _BAD_CHARS.search(cfg.prefix or "") or _BAD_CHARS.search(cfg.suffix or ""):
-        errs.append(("6. 檔名前綴", "檔名前綴/後綴含不允許的字元"))
+        errs.append(("7. 檔名前綴", "檔名前綴/後綴含不允許的字元"))
     return errs
 
 
@@ -209,11 +214,16 @@ def run(cfg, progress=None, log=None, is_canceled=None):
             log("已取消")
             break
         log("── 剖面 %s ──" % name)
-        settings = {"buffer": cfg.buffer, "step": cfg.step, "column_width": cfg.column_width,
+        settings = {"rock_attitude": cfg.rock_attitude, "fault_attitude": cfg.fault_attitude,
+                    "use_core_angle": cfg.use_core_angle,
+                    "buffer": cfg.buffer, "step": cfg.step, "column_width": cfg.column_width,
                     "elev_source": cfg.elev_source, "begin_label": name, "end_label": name + "'"}
         try:
             sec = SectionBuilder(name, feat.geometry(), holes, hole_xform, terrain, settings).compute()
+            st = sec.structure()
             log(sec.summary())
+            if sec.attitude_summary():
+                log("　" + sec.attitude_summary())
             if not sec.holes:
                 log("⚠ 剖面 %s 沒有鑽孔位於 %.0f m 範圍內，只輸出地形剖面" % (name, cfg.buffer))
             for w in sec.warnings:
@@ -224,6 +234,11 @@ def run(cfg, progress=None, log=None, is_canceled=None):
                         log("⚠ 鑽孔 %s MDB 井口高程 %.2f m 與地形高程 %.2f m 相差 %.1f m" % (
                             h["b"].hole_no, h["z"], h["z_dem"], h["z"] - h["z_dem"]))
             counts = pb.write_section_layers(sec, cfg.transform_context)
+            kinds = {}
+            for typ, _pts, _a in st.lines:
+                kinds[typ] = kinds.get(typ, 0) + 1
+            if kinds:
+                log("　構造線：" + "、".join("%s %d" % kv for kv in kinds.items()))
             title = "%s%s%s" % (cfg.prefix, name, cfg.suffix)
             pid = sorted(set(h["b"].proj_no for h in sec.holes))
             pname = "、".join(geo.projects.get(p, "") for p in pid if geo.projects.get(p))

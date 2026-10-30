@@ -13,8 +13,8 @@ from qgis.core import (QgsAction, QgsFeature, QgsLayoutItem,
 
 from qgis.core import Qgis
 
-from .compat import enum_value, make_field
-from .symbology import discon_renderer, strata_renderer
+from .compat import enum_value, log_exception, make_field
+from .symbology import adjust_terrain_renderer, discon_renderer, strata_renderer
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLE_DIR = os.path.join(PLUGIN_DIR, "styles")
@@ -49,10 +49,13 @@ LAYER_SPECS = {
     "discon": {
         "suffix": "不連續面", "title": "不連續面", "geom": "Point", "qml": "discon.qml",
         "fields": [("X", "double"), ("井口高程", "double"), ("深度", "double"), ("Y", "double"),
-                   ("DIP", "double"), ("TYPE", "string"), ("代碼", "string"), ("孔號", "string")]},
+                   ("DIP", "double"), ("TYPE", "string"), ("代碼", "string"), ("孔號", "string"),
+                   ("視傾角", "double")]},
     "terrain": {
         "suffix": "地形剖面", "title": "地形剖面", "geom": "MultiLineString", "qml": "terrain.qml",
-        "fields": [("id", "int"), ("type", "string")]},
+        "fields": [("id", "int"), ("type", "string"), ("類別", "string"), ("孔號", "string"),
+                   ("深度", "double"), ("上層", "string"), ("下層", "string"), ("視傾角", "double"),
+                   ("終止", "string")]},
     "paths": {
         "suffix": "paths", "title": "paths", "geom": "LineString", "qml": "paths.qml",
         "fields": [("begin", "string"), ("end", "string")]},
@@ -240,6 +243,7 @@ class ProjectBuilder(object):
         types = sorted(set(a["TYPE"] for _g, a in self._data["discon"]))
         if types:
             layers["discon"].setRenderer(discon_renderer(types))
+        adjust_terrain_renderer(layers["terrain"], set(a["type"] for _g, a in self._data["terrain"]))
 
         for key in TREE_ORDER:
             prj.addMapLayer(layers[key], False)
@@ -298,11 +302,11 @@ class ProjectBuilder(object):
         pad = max(0.2, 0.01 * L)
         xmin, xmax = -pad, L + pad
         zmin, zmax = sec.z_range()
-        zr = max(zmax - zmin, 1.0)
         W = 292.7
         k = W / (xmax - xmin)  # mm per m
 
         if legend is not None:
+            _legend_font(legend, family)
             legend.setAutoUpdateModel(True)
             legend.setLinkedMap(mp)
             legend.setAutoUpdateModel(False)
@@ -313,12 +317,11 @@ class ProjectBuilder(object):
                 if node.layerId() in hide_ids:
                     node.parent().removeChildNode(node)
             legend.updateLegend()
-            legend.adjustBoxSize()
-            leg_h = legend.rect().height()
+            _leg_w, leg_h = _fit_legend(layout, legend)
         else:
             leg_h = 42.0
         head_mm = max(leg_h, 14.0) + 14.0
-        bottom = zmin - max(1.0, 0.06 * zr)
+        bottom = sec.frame_bottom()
         top = zmax + head_mm / k
         H = (top - bottom) * k
         page_h = H + 4.3
@@ -347,7 +350,7 @@ class ProjectBuilder(object):
             sb.update()
         if legend is not None:
             legend.updateLegend()
-            legend.adjustBoxSize()
+            _fit_legend(layout, legend)
             # keep the legend clear of the scale bar
             x_leg = 72.9
             if sb is not None:
@@ -358,12 +361,22 @@ class ProjectBuilder(object):
         def to_layout(x, y):
             return (2.15 + (x - xmin) * k, 2.15 + (top - y) * k)
 
-        # section end labels
+        # section end labels (kept clear of the legend box)
+        leg_box = None
+        if legend is not None:
+            leg_box = (legend.pos().x(), legend.pos().y(), legend.pos().x() + legend.rect().width(),
+                       legend.pos().y() + legend.rect().height())
+
+        def clear_of_legend(x0, x1, y_bottom, h=9.0):
+            if leg_box and x1 > leg_box[0] and x0 < leg_box[2] and y_bottom > leg_box[1] and y_bottom - h < leg_box[3]:
+                return leg_box[3] + h + 1.0
+            return y_bottom
         px, py = to_layout(0, sec.topo_at(0))
-        _add_label(layout, sec.begin, (9.0, py - 4.0),
+        _add_label(layout, sec.begin, (9.0, clear_of_legend(9.0, 25.0, py - 4.0)),
                    "LowerLeft", 20, family)
         px, py = to_layout(L, sec.topo_at(L))
-        _add_label(layout, sec.end, (2.15 + W - 8.0, py - 4.0),
+        xr = 2.15 + W - 8.0
+        _add_label(layout, sec.end, (xr, clear_of_legend(xr - 16.0, xr, py - 4.0)),
                    "LowerRight", 20, family)
         # borehole names
         for h in sec.holes:
@@ -395,6 +408,45 @@ class ProjectBuilder(object):
                 _add_label(layout, unit if len(unit) <= 6 else base, (4.0, ly), "MiddleLeft", 17, family)
                 last_y = ly
         return layout
+
+
+def _fit_legend(layout, legend):
+    """Size the legend from QgsLegendRenderer (adjustBoxSize() can keep a stale size). Returns (w, h) mm."""
+    legend.adjustBoxSize()
+    w, h = legend.rect().width(), legend.rect().height()
+    try:
+        from qgis.core import QgsLayoutUtils, QgsLegendRenderer
+        ctx = QgsLayoutUtils.createRenderContextForLayout(layout, None, 300)
+        size = QgsLegendRenderer(legend.model(), legend.legendSettings()).minimumSize(ctx)
+        if size.width() > 0 and size.height() > 0:
+            w, h = max(w, size.width()), max(h, size.height())
+            legend.setResizeToContents(False)
+            legend.attemptResize(QgsLayoutSize(w, h))
+    except Exception as e:
+        log_exception("圖例尺寸計算", e)
+    return w, h
+
+
+def _legend_font(legend, family):
+    """Use a CJK-capable font in every legend text style so the box is measured correctly."""
+    from qgis.core import QgsLegendStyle
+    for name in ("Title", "Group", "Subgroup", "SymbolLabel"):
+        try:
+            key = enum_value(QgsLegendStyle, "Style", name)
+            st = legend.style(key)
+            if hasattr(st, "textFormat"):
+                fmt = st.textFormat()
+                f = fmt.font()
+                f.setFamily(family)
+                fmt.setFont(f)
+                st.setTextFormat(fmt)
+            else:  # QGIS < 3.30
+                f = st.font()
+                f.setFamily(family)
+                st.setFont(f)
+            legend.setStyle(key, st)
+        except Exception as e:  # keep the template style
+            log_exception("圖例字型設定", e)
 
 
 def legend_bottom(legend):
