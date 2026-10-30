@@ -240,7 +240,13 @@ class Geo2020Data(object):
                     and abs(b.elev_mdb - b.water_depth - we) > 0.2:
                 self.warnings.append("鑽孔 %s 水位紀錄不一致：井口高程 %.2f − 水位深度 %.2f = %.2f m，"
                                      "但 water_tables.elevation 為 %.2f m（剖面以水位深度繪製）" % (
-                                         b.hole_no, b.elev_mdb, b.water_depth, b.elev_mdb - b.water_depth, we))
+                                         self.hole_label(b), b.elev_mdb, b.water_depth, b.elev_mdb - b.water_depth, we))
+
+    def hole_label(self, b):
+        """Hole number, plus the project number when the MDB holds several projects."""
+        if len(set(h.proj_no for h in self.holes.values())) > 1:
+            return "%s（計畫 %s）" % (b.hole_no, b.proj_no)
+        return b.hole_no
 
     def _check_duplicates(self):
         """Warn about boreholes sharing the same coordinates (usually a copy error in the MDB)."""
@@ -344,7 +350,7 @@ class Geo2020Data(object):
                 gaps = _photo_gaps(b)
                 if gaps:
                     self.warnings.append("鑽孔 %s 缺少 %s 的岩心照片" % (
-                        b.hole_no, "、".join("%.1f～%.1f m" % g for g in gaps)))
+                        self.hole_label(b), "、".join("%.1f～%.1f m" % g for g in gaps)))
         return n_holes, n_photos
 
 

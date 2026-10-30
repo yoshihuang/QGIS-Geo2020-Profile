@@ -38,6 +38,7 @@ class RunConfig(object):
         self.rock_attitude = kw.get("rock_attitude")    # (dip_dir, dip) or None
         self.fault_attitude = kw.get("fault_attitude")  # (dip_dir, dip) or None
         self.use_core_angle = kw.get("use_core_angle", False)
+        self.correlate = kw.get("correlate", False)
         self.geo = kw.get("geo")                            # cached Geo2020Data
         self.transform_context = kw.get("transform_context") or QgsProject.instance().transformContext()
 
@@ -215,7 +216,7 @@ def run(cfg, progress=None, log=None, is_canceled=None):
             break
         log("── 剖面 %s ──" % name)
         settings = {"rock_attitude": cfg.rock_attitude, "fault_attitude": cfg.fault_attitude,
-                    "use_core_angle": cfg.use_core_angle,
+                    "use_core_angle": cfg.use_core_angle, "correlate": cfg.correlate,
                     "buffer": cfg.buffer, "step": cfg.step, "column_width": cfg.column_width,
                     "elev_source": cfg.elev_source, "begin_label": name, "end_label": name + "'"}
         try:

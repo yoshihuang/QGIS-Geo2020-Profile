@@ -174,7 +174,7 @@ class StructureBuilder(object):
     """
 
     def __init__(self, holes, terrain, soil_rock, box, az_at, rock_att=None, fault_att=None,
-                 use_core_angle=False, col_w=2.0):
+                 use_core_angle=False, col_w=2.0, correlate=False):
         self.holes = sorted(holes, key=lambda h: h["x"])
         self.tx, self.tz = terrain
         self.soil_rock = soil_rock
@@ -183,6 +183,7 @@ class StructureBuilder(object):
         self.rock_att = rock_att
         self.fault_att = fault_att
         self.use_core_angle = use_core_angle
+        self.correlate = correlate
         self.col_w = col_w
         self.lines = []      # (type, [(x,z),...], attrs)
         self.notes = []
@@ -235,11 +236,13 @@ class StructureBuilder(object):
         if not any(h["contacts"] for h in H):
             return
         if not self.rock_att:
-            self.notes.append("未輸入岩層代表位態：未對比的岩層界線以水平延伸")
+            self.notes.append("未輸入岩層代表位態：岩層界線以水平延伸")
         # links[i][k] = (j, k2) matched contact in the right neighbour
         right = [dict() for _ in H]
         left = [dict() for _ in H]
         for i in range(len(H) - 1):
+            if not self.correlate:
+                break  # default: every contact is drawn at the apparent dip from its own borehole
             if H[i + 1]["x"] - H[i]["x"] < self.col_w:
                 continue  # overlapping columns: correlating them would draw a vertical zig-zag
             for a, b in _match(H[i]["contacts"], H[i + 1]["contacts"]):
@@ -311,21 +314,48 @@ class StructureBuilder(object):
                                                        "視傾角": round(a, 1), "終止": "%s / %s" % (t2, t1)}))
 
     # ------------------------------------------------------------ other discontinuities
-    def build_ticks(self, half_len=2.5):
-        """Joints, shear planes, fissures, veins: short ticks at the measured core angle.
+    def discon_app(self, x, code, angle):
+        """Apparent dip (signed) of one discontinuity record, or None if no direction is known.
 
-        The core is not oriented, so only the angle is known; ticks are drawn with the
-        same convention as the 不連續面 point symbols (rising towards +x).
+        Direction: fault types use the fault attitude, everything else the rock attitude.
+        Dip: bedding-type fabric uses the representative dip (or the MDB angle when
+        use_core_angle is set); the other types use their own MDB angle.
+        """
+        az = self.az_at(x)
+        if code in FAULT_TYPES:
+            if not self.fault_att:
+                return None
+            return apparent_dip(self.fault_att[0], self.fault_att[1] if angle is None else angle, az)
+        if not self.rock_att:
+            return None
+        if code in FABRIC_TYPES and not (self.use_core_angle and angle is not None):
+            dip = self.rock_att[1]
+        else:
+            dip = angle if angle is not None else self.rock_att[1]
+        return apparent_dip(self.rock_att[0], dip, az)
+
+    def build_ticks(self, half_len=2.5):
+        """Joints, shear planes, fissures, tension cracks, veins: short segments centred on the record.
+
+        With a rock attitude the segment is drawn at its apparent dip (MDB angle, representative
+        dip direction).  Without one only the core angle is known; the segment then rises towards +x
+        (same convention as the 不連續面 symbols).
         """
         for h in self.holes:
             for depth, code, name, angle in h["discon"]:
                 if code not in SHORT_TYPES:
                     continue
-                ang = math.radians(angle if angle is not None else 45.0)
-                dx, dz = math.cos(ang) * half_len, math.sin(ang) * half_len
+                a = self.discon_app(h["x"], code, angle)
+                if a is None:
+                    ang = math.radians(angle if angle is not None else 45.0)
+                    dx, dz = math.cos(ang) * half_len, math.sin(ang) * half_len
+                else:
+                    v = direction(a)
+                    dx, dz = v[0] * half_len, v[1] * half_len
                 p = (h["x"], h["z"] - depth)
                 self.lines.append((name, [(p[0] - dx, p[1] - dz), (p[0] + dx, p[1] + dz)],
-                                   {"孔號": h["name"], "深度": depth, "類別": name, "視傾角": None}))
+                                   {"孔號": h["name"], "深度": depth, "類別": name,
+                                    "視傾角": None if a is None else round(a, 1)}))
 
     def build(self):
         self.build_faults()

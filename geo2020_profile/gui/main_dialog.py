@@ -202,14 +202,16 @@ class MainDialog(QDialog):
         h_r = QHBoxLayout(self.rock_box)
         self.rock_dd = self._angle_spin(360.0, "傾向（dip direction）")
         self.rock_dip = self._angle_spin(90.0, "傾角（dip）")
-        h_r.addWidget(QLabel("傾向"))
+        h_r.addWidget(QLabel("傾向方位角"))
         h_r.addWidget(self.rock_dd)
         h_r.addWidget(QLabel("傾角"))
         h_r.addWidget(self.rock_dip)
         h_r.addStretch(1)
         v_att.addWidget(self.rock_box)
-        self.core_angle = QCheckBox("各層理／劈理點的視傾角改用 MDB 實測傾角計算（方向仍依代表位態）")
+        self.core_angle = QCheckBox("傾角改用 MDB 層理／劈理／片理實測傾角的平均值（傾向仍依代表位態；地層界線與視傾角線一致）")
         v_att.addWidget(self.core_angle)
+        self.correlate = QCheckBox("相鄰鑽孔有相同上下岩層的界面時直接連線對比（不勾選：每孔界面皆依視傾角延伸）")
+        v_att.addWidget(self.correlate)
         self.fault_box = QGroupBox("斷層代表位態（MDB 有斷層／斷層帶紀錄時用來延伸斷層線）")
         self.fault_box.setCheckable(True)
         self.fault_box.setChecked(False)
@@ -217,7 +219,7 @@ class MainDialog(QDialog):
         self.fault_dd = self._angle_spin(360.0, "斷層傾向")
         self.fault_dip = self._angle_spin(90.0, "斷層傾角")
         self.fault_dip.setValue(70.0)
-        h_f.addWidget(QLabel("傾向"))
+        h_f.addWidget(QLabel("傾向方位角"))
         h_f.addWidget(self.fault_dd)
         h_f.addWidget(QLabel("傾角"))
         h_f.addWidget(self.fault_dip)
@@ -344,6 +346,7 @@ class MainDialog(QDialog):
         self.fault_dd.setValue(float(s.value(SKEY + "fault_dd", 0.0)))
         self.fault_dip.setValue(float(s.value(SKEY + "fault_dip", 70.0)))
         self.core_angle.setChecked(s.value(SKEY + "core_angle", False, type=bool))
+        self.correlate.setChecked(s.value(SKEY + "correlate", False, type=bool))
         if s.value(SKEY + "elev", "dem") == "mdb":
             self.elev_mdb.setChecked(True)
         out = s.value(SKEY + "out_dir", "")
@@ -371,6 +374,7 @@ class MainDialog(QDialog):
         s.setValue(SKEY + "fault_dd", self.fault_dd.value())
         s.setValue(SKEY + "fault_dip", self.fault_dip.value())
         s.setValue(SKEY + "core_angle", self.core_angle.isChecked())
+        s.setValue(SKEY + "correlate", self.correlate.isChecked())
         s.setValue(SKEY + "out_dir", self.out_w.filePath())
         s.setValue(SKEY + "folder", self.folder_w.filePath())
 
@@ -607,6 +611,7 @@ class MainDialog(QDialog):
             rock_attitude=(self.rock_dd.value(), self.rock_dip.value()) if self.rock_box.isChecked() else None,
             fault_attitude=(self.fault_dd.value(), self.fault_dip.value()) if self.fault_box.isChecked() else None,
             use_core_angle=self.core_angle.isChecked(),
+            correlate=self.correlate.isChecked(),
             geo=self.geo,
             transform_context=QgsProject.instance().transformContext())
 

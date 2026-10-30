@@ -5,7 +5,7 @@ qgisMaximumVersion=4.99
 description=由 Geo2020 工程地質探勘資料庫 (MDB) 批次產製地質剖面 QGIS 專案檔與 GeoPackage。Builds geological cross-section QGIS projects from Geo2020 borehole databases (MDB).
 about=讀取經濟部地質調查及礦業管理中心 Geo2020「工程地質探勘資料庫」MDB 檔（內建純 Python Access 讀取器，免安裝 ODBC），在地圖上顯示鑽孔位置，並依剖面線、數值地形 (DEM 或等高線) 批次產生地質剖面 QGIS 專案檔 (.qgz)，所有圖層存入 GroProfile.gpkg。剖面包含鑽孔柱狀圖（依 2008 資料作業規範附錄B 工程地質圖元符號，內含全部 131 個圖元）、地形線、土岩界線、地下水位、RQD、SPT、不連續面，以及含圖例、比例尺、格線的版面配置。另提供岩心箱照片檢視工具：點選地層即顯示對應深度的岩心照片。
  Reads Taiwan Geo2020 engineering-geology borehole databases (Access MDB, built-in pure-Python reader, no ODBC needed), shows borehole locations, and batch-generates one geological cross-section project per section line using a DEM or contour layer. Layers (strata columns with the official Geo2020 lithology patterns, terrain, soil/rock interface, groundwater, RQD, SPT, discontinuities) are stored in a single GeoPackage and each project includes a print layout. A core-box photo viewer shows the core photos of a clicked stratum.
-version=1.1.2
+version=1.3.2
 author=Yoshi
 email=yoshi.hml@gmail.com
 homepage=https://github.com/yoshihuang/QGIS-Geo2020-Profile
@@ -19,13 +19,43 @@ deprecated=False
 hasProcessingProvider=no
 supportsQt6=True
 server=False
-changelog=1.1.2
+changelog=1.3.2
+ - Call-out leader arrows now end inside the stratum they point to (last segment runs along the unit centre line).
+ - Call-out 引線箭頭改落在該地層上下兩條界線之間（引線末段沿地層中線水平進入）。
+ 1.3.1
+ - Stratum names: thin units get a smaller font; units too thin for 8 pt are labelled with a call-out instead of being omitted.
+ - 版面地層名稱：較薄地層自動縮小字體，太薄時改以引線（call-out）標註，不再省略。
+ 1.3.0
+ - Fix: with "use MDB measured dip", rock contacts, apparent-dip lines, symbols and the layout note all use the same apparent dip (mean of MDB bedding/cleavage/schistosity dips).
+ - Fix: stratum names are placed between the unit's upper and lower boundary lines.
+ - Layout note reads "dip direction (azimuth)/dip"; warnings show the project number when an MDB holds several projects.
+ - 修正：勾選實測傾角時，岩層界線、地層視傾角線、符號與版面註記統一使用同一視傾角（MDB 實測傾角平均）。
+ - 修正：版面地層名稱改標示在上下兩條地層界線之間。
+ - 版面註記改為「傾向方位角/傾角」；MDB 含多個計畫時，警告訊息標示計畫編號。
+ 1.2.0
+ - Fix: rock contacts are always extended at the apparent dip (direct correlation between adjacent boreholes is now optional).
+ - Fix: joints, shear planes, fissures, tension cracks and veins, and all discontinuity symbols, are drawn at their apparent dip.
+ - Layout note with section azimuth, attitudes and apparent dip; apparent-dip and fault lines are labelled with their angle.
+ - Generated projects open zoomed to the terrain-profile layer.
+ - 修正：岩層界線預設一律依視傾角延伸（相鄰孔直接對比改為選項）。
+ - 修正：節理、剪力面、裂隙、張裂隙、岩脈的短線及所有不連續面符號，改依視傾角（實測傾角＋代表傾向）繪製。
+ - 版面新增剖面方位、代表位態與視傾角註記；地層視傾角線、斷層線標示視傾角。
+ - 產出的專案開啟時縮放至地形剖面圖層範圍。
+ 1.1.2
+ - New check: warns when water_tables elevation differs from collar elevation minus water depth.
  - 新增檢查：water_tables 的水位高程與「井口高程 − 水位深度」不一致時提出警告。
  1.1.1
+ - Fix: rock contacts stop at any borehole whose log they would cross without showing the contact.
+ - New checks: duplicate borehole coordinates, overlapping columns in a section, gaps in core-photo coverage.
+ - The borehole layer is saved into GroProfile.gpkg after a run, so it survives reopening the project.
  - 修正：岩層界線延伸時，碰到任何有鑽到該深度但沒有此界面的鑽孔即終止（原本只檢查相鄰鑽孔）。
  - 新增檢查：MDB 中座標相同的鑽孔、剖面上柱狀圖重疊（重疊鑽孔間不做地層對比）、岩心照片缺漏深度。
  - 鑽孔位置圖層於產製後存入 GroProfile.gpkg，重新開啟專案不會遺失。
  1.1.0
+ - Representative rock and fault attitude inputs; apparent dip computed from the section azimuth decides which way strata dip.
+ - Rock-to-rock contacts drawn and extended by apparent dip until a fault, the soil/rock interface, the ground surface, the section frame or a neighbouring borehole.
+ - Fault lines, apparent-dip form lines (bedding, cleavage, ...) and every discontinuity class with data added to the terrain-profile layer; legend lists only types present.
+ - Bedding/cleavage symbols rotated by apparent dip; fixed legend size estimation that caused overlaps.
  - 新增岩層／斷層代表位態輸入，依剖面方位計算視傾角並判定傾斜方向。
  - 地形剖面新增岩層間界線（鑽孔間對比連線，未對比者依視傾角延伸至斷層、土岩界面、地表、剖面邊界或鄰孔）。
  - 新增斷層線、地層視傾角線（層理／劈理等），以及節理、剪力面、裂隙、岩脈等各類不連續面；圖例只列出有資料的類別。

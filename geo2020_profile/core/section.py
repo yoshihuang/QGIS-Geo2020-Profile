@@ -14,7 +14,7 @@ import math
 from qgis.core import (QgsCoordinateTransform, QgsFeatureRequest, QgsGeometry, QgsPointXY,
                        QgsProject, QgsRasterLayer)
 
-from .structure import FABRIC_TYPES, StructureBuilder, apparent_dip, azimuth
+from .structure import StructureBuilder, apparent_dip, azimuth
 from .symbology import code_name, normalize_code
 
 
@@ -190,6 +190,7 @@ class SectionBuilder(object):
         self.rock_att = s.get("rock_attitude")        # (dip_dir, dip) or None
         self.fault_att = s.get("fault_attitude")      # (dip_dir, dip) or None
         self.use_core_angle = s.get("use_core_angle", False)
+        self.correlate = s.get("correlate", False)
         self._struct = None
         self.begin = s.get("begin_label") or name
         self.end = s.get("end_label") or (name + "'")
@@ -258,21 +259,127 @@ class SectionBuilder(object):
         sr = self._soil_rock_line()
         sr = [(p.x(), p.y()) for p in sr] if sr else None
         top = max(self.topo) + 5.0
+        # one effective rock attitude for contacts, form lines, symbols and the layout note
         st = StructureBuilder(holes, (self.ch, self.topo), sr, (0.0, self.frame_bottom(), self.length, top),
-                              self.az_at, self.rock_att, self.fault_att, self.use_core_angle, self.col_w).build()
+                              self.az_at, self.effective_rock_att(), self.fault_att, False, self.col_w,
+                              self.correlate).build()
         for n in st.notes:
             self.warnings.append("剖面 %s：%s" % (self.name, n))
         self._struct = st
         return st
 
+    def effective_rock_att(self):
+        """(dip_dir, dip) actually used for drawing.
+
+        With 「改用 MDB 實測傾角」 the dip is the mean of the MDB bedding / cleavage / foliation
+        angles of the boreholes in this section (dip direction stays the representative one),
+        so rock contacts, apparent-dip lines, symbols and the layout note all use the same value.
+        """
+        if not self.rock_att:
+            return None
+        if self.use_core_angle:
+            from .structure import FABRIC_TYPES
+            angs = [a for h in self.holes for d, c, n, a in h["b"].discon if c in FABRIC_TYPES and a is not None]
+            if angs:
+                return (self.rock_att[0], sum(angs) / len(angs))
+        return self.rock_att
+
+    def _core_dip_note(self):
+        eff = self.effective_rock_att()
+        if eff and self.use_core_angle and abs(eff[1] - self.rock_att[1]) > 1e-6:
+            return "（傾角採 MDB 層理／劈理／片理實測平均 %.1f°）" % eff[1]
+        return ""
+
+    def attitude_note(self):
+        """Lines for the layout note: attitudes, section azimuth and apparent dips."""
+        az = self.az_at(self.length / 2.0)
+        out = ["剖面方位 N%.0f°（%s → %s）" % (az, self.begin, self.end)]
+
+        def side(a):
+            return "水平" if abs(a) < 0.05 else "向 %s 傾斜" % (self.end if a > 0 else self.begin)
+        if self.rock_att:
+            eff = self.effective_rock_att()
+            a = apparent_dip(eff[0], eff[1], az)
+            out.append("岩層代表位態 %03.0f°/%.0f°（傾向方位角/傾角）" % self.rock_att)
+            out.append("地層視傾角 %.1f°，%s" % (abs(a), side(a)))
+            if self._core_dip_note():
+                out.append(self._core_dip_note())
+        else:
+            out.append("未輸入岩層代表位態（地層界線水平延伸）")
+        if self.fault_att:
+            a = apparent_dip(self.fault_att[0], self.fault_att[1], az)
+            out.append("斷層代表位態 %03.0f°/%.0f°（傾向方位角/傾角），視傾角 %.1f°，%s" % (
+                self.fault_att[0], self.fault_att[1], abs(a), side(a)))
+        return out
+
     def attitude_summary(self):
         if not self.rock_att:
             return ""
         az = self.az_at(self.length / 2.0)
-        a = apparent_dip(self.rock_att[0], self.rock_att[1], az)
+        eff = self.effective_rock_att()
+        a = apparent_dip(eff[0], eff[1], az)
         side = "%s側" % (self.end if a > 0 else self.begin) if abs(a) > 0.05 else "水平"
-        return "剖面方位 %.0f°，岩層位態 %03.0f/%.0f → 視傾角 %.1f°（向 %s傾斜）" % (
-            az, self.rock_att[0], self.rock_att[1], abs(a), side)
+        return "剖面方位 %.0f°，岩層位態 %03.0f/%.0f → 視傾角 %.1f°（向 %s傾斜）%s" % (
+            az, eff[0], eff[1], abs(a), side, self._core_dip_note())
+
+    # ---------------------------------------------------------------- unit labels
+    def unit_bands(self, x):
+        """Strata of the first (left-most) borehole with their bounding lines at chainage x.
+
+        Returns [(name, top_z, bottom_z)] where the bounds are evaluated on the actual drawn
+        lines: terrain, soil/rock interface, rock contacts (地層界線) and the frame bottom.
+        A bound is None when that line does not reach x.
+        """
+        if not self.holes:
+            return []
+        h0 = self.holes[0]
+        b = h0["b"]
+        units = []                      # [name, kind, code, top_depth, bottom_depth]
+        for lay in sorted(b.layers, key=lambda q: q["top"]):
+            code = normalize_code(lay["code"])
+            rock = code == "010" or (code[:1].isdigit() and code[:1] in "345678")
+            name = _unit_name(lay)
+            if units and units[-1][1] == ("rock" if rock else "soil") and (not rock or units[-1][2] == code):
+                u = units[-1]
+                if not rock and (lay["bottom"] - lay["top"]) > u[5]:
+                    u[0] = name     # overburden: name of the thickest soil layer
+                    u[5] = lay["bottom"] - lay["top"]
+                u[4] = lay["bottom"]
+            else:
+                units.append([name, "rock" if rock else "soil", code, lay["top"], lay["bottom"],
+                              lay["bottom"] - lay["top"]])
+        lines = [(a, pts) for typ, pts, a in self.structure().lines
+                 if typ == "地層界線" and h0["b"].hole_no in str(a.get("孔號", "")).split("、")]
+        sr = self._soil_rock_line()
+        sr = [(p.x(), p.y()) for p in sr] if sr else None
+
+        def z_on(pts, xx):
+            pts = sorted(pts)
+            if not pts or xx < pts[0][0] - 1e-6 or xx > pts[-1][0] + 1e-6:
+                return None
+            for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+                if x0 - 1e-9 <= xx <= x1 + 1e-9:
+                    return z0 if x1 == x0 else z0 + (xx - x0) / (x1 - x0) * (z1 - z0)
+            return pts[-1][1]
+
+        out = []
+        prev_bottom = self.topo_at(x)       # top of the first unit = ground surface
+        for i, u in enumerate(units):
+            if i == len(units) - 1:
+                bottom = self.frame_bottom()
+            else:
+                nxt = units[i + 1]
+                if u[1] == "soil" and nxt[1] == "rock":
+                    bottom = z_on(sr, x) if sr else None
+                else:
+                    bottom = None
+                    for a, pts in lines:
+                        if a.get("上層") == u[2] and a.get("下層") == nxt[2]:
+                            bottom = z_on(pts, x)
+                            break
+            out.append((u[0], prev_bottom, bottom))
+            prev_bottom = bottom
+        return out
 
     # ---------------------------------------------------------------- outputs
     def strata_features(self):
@@ -344,10 +451,8 @@ class SectionBuilder(object):
             b, x, z = h["b"], h["ch"], h["z"]
             for depth, code, name, dip in b.discon:
                 y = z - depth
-                app = None
-                if self.rock_att and code in FABRIC_TYPES:
-                    d = dip if (self.use_core_angle and dip is not None) else self.rock_att[1]
-                    app = round(apparent_dip(self.rock_att[0], d, self.az_at(x)), 1)
+                app = self.structure().discon_app(x, code, dip)
+                app = None if app is None else round(app, 1)
                 out.append((QgsGeometry.fromPointXY(QgsPointXY(x, y)), {
                     "X": round(x, 2), "井口高程": z, "深度": depth, "Y": round(y, 2), "DIP": dip,
                     "TYPE": name, "代碼": code, "孔號": b.hole_no, "視傾角": app}))
@@ -473,3 +578,12 @@ class SectionBuilder(object):
 def _rock_contacts(layers, z_collar):
     from .structure import rock_contacts
     return rock_contacts([dict(lay, code=normalize_code(lay["code"])) for lay in layers], z_collar)
+
+
+def _unit_name(lay):
+    """Short stratum name: text before '：' in the description, else the symbol name."""
+    desc = lay.get("desc") or ""
+    unit = desc.split("：")[0].split(":")[0].strip() if ("：" in desc or ":" in desc) else ""
+    if not unit or len(unit) > 6:
+        unit = code_name(lay["code"]) or lay["code"]
+    return unit

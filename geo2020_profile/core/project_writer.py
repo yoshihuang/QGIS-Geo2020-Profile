@@ -14,7 +14,7 @@ from qgis.core import (QgsAction, QgsFeature, QgsLayoutItem,
 from qgis.core import Qgis
 
 from .compat import enum_value, log_exception, make_field
-from .symbology import adjust_terrain_renderer, discon_renderer, strata_renderer
+from .symbology import adjust_terrain_renderer, discon_renderer, label_terrain_lines, strata_renderer
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STYLE_DIR = os.path.join(PLUGIN_DIR, "styles")
@@ -157,7 +157,7 @@ def _text_format(size, family, bold=False):
     return fmt
 
 
-def _add_label(layout, text, pos_mm, ref, size, family, bold=False):
+def _add_label(layout, text, pos_mm, ref, size, family, bold=False, grow=1.0):
     lab = QgsLayoutItemLabel(layout)
     lab.setText(text)
     fmt = _text_format(size, family, bold)
@@ -168,6 +168,8 @@ def _add_label(layout, text, pos_mm, ref, size, family, bold=False):
     lab.setMargin(0.5)
     layout.addLayoutItem(lab)
     lab.adjustSizeToText()
+    if grow != 1.0:  # multi-line notes: avoid unwanted wrapping when font metrics differ at render time
+        lab.attemptResize(QgsLayoutSize(lab.rect().width() * grow, lab.rect().height() * 1.08))
     lab.setReferencePoint(_enum(QgsLayoutItem, "ReferencePoint", ref))
     lab.attemptMove(QgsLayoutPoint(pos_mm[0], pos_mm[1]))
     return lab
@@ -244,6 +246,7 @@ class ProjectBuilder(object):
         if types:
             layers["discon"].setRenderer(discon_renderer(types))
         adjust_terrain_renderer(layers["terrain"], set(a["type"] for _g, a in self._data["terrain"]))
+        label_terrain_lines(layers["terrain"], _font_family())
 
         for key in TREE_ORDER:
             prj.addMapLayer(layers[key], False)
@@ -256,8 +259,17 @@ class ProjectBuilder(object):
 
         layout = self._build_layout(prj, sec, title or "地質剖面%s" % sec.name)
         prj.layoutManager().addLayout(layout)
+        view = getattr(self, "_view", None)
+        if view is not None:
+            try:
+                from qgis.core import QgsReferencedRectangle
+                prj.viewSettings().setDefaultViewExtent(QgsReferencedRectangle(view, self.crs))
+            except Exception as e:
+                log_exception("預設檢視範圍", e)
         if not prj.write(qgz_path):
             raise WriteError("無法寫入專案檔 %s：%s" % (qgz_path, prj.error()))
+        if view is not None:
+            _set_canvas_extent(qgz_path, view, self.crs)
         return prj
 
     def _add_photo_action(self, layer):
@@ -320,7 +332,8 @@ class ProjectBuilder(object):
             _leg_w, leg_h = _fit_legend(layout, legend)
         else:
             leg_h = 42.0
-        head_mm = max(leg_h, 14.0) + 14.0
+        note_h = 6.0 + 4.6 * len(sec.attitude_note())   # attitude note under the scale bar
+        head_mm = max(leg_h, 14.0 + note_h) + 14.0
         bottom = sec.frame_bottom()
         top = zmax + head_mm / k
         H = (top - bottom) * k
@@ -331,6 +344,10 @@ class ProjectBuilder(object):
         mp.attemptMove(QgsLayoutPoint(2.15, 2.15))
         mp.attemptResize(QgsLayoutSize(W, H))
         mp.setExtent(QgsRectangle(xmin, bottom, xmax, top))
+        # default canvas view: extent of the 地形剖面 layer (+5 % margin)
+        zt = max(sec.topo)
+        m = 0.05 * max(L, zt - bottom)
+        self._view = QgsRectangle(-m, bottom - m, L + m, zt + m)
         mp.setKeepLayerSet(False)
         mp.setLayers([])
         gstep_x = nice_step(xmax - xmin, 16, False)
@@ -353,6 +370,9 @@ class ProjectBuilder(object):
             _fit_legend(layout, legend)
             # keep the legend clear of the scale bar
             x_leg = 72.9
+            # keep the legend to the right of the attitude note
+            note_w = max([_text_width_mm(t, 9) for t in sec.attitude_note()] or [0.0])
+            x_leg = max(x_leg, 11.0 + note_w + 6.0)
             if sb is not None:
                 sb.refreshItemSize()
                 x_leg = max(x_leg, sb.pos().x() + sb.rect().width() + 8.0)
@@ -367,47 +387,168 @@ class ProjectBuilder(object):
             leg_box = (legend.pos().x(), legend.pos().y(), legend.pos().x() + legend.rect().width(),
                        legend.pos().y() + legend.rect().height())
 
+        note_lines = sec.attitude_note()
+        y_note = 22.0
+        if sb is not None:
+            y_note = sb.pos().y() + sb.rect().height() + 4.0
+        note_w = max([_text_width_mm(t, 9) for t in note_lines] or [0.0])
+        obstacles = [b for b in (leg_box, (11.0, y_note, 11.0 + note_w + 2.0, y_note + 4.6 * len(note_lines) + 2.0)) if b]
+
         def clear_of_legend(x0, x1, y_bottom, h=9.0):
-            if leg_box and x1 > leg_box[0] and x0 < leg_box[2] and y_bottom > leg_box[1] and y_bottom - h < leg_box[3]:
-                return leg_box[3] + h + 1.0
+            for ob in obstacles:
+                if x1 > ob[0] and x0 < ob[2] and y_bottom > ob[1] and y_bottom - h < ob[3]:
+                    y_bottom = ob[3] + h + 1.0
             return y_bottom
         px, py = to_layout(0, sec.topo_at(0))
-        _add_label(layout, sec.begin, (9.0, clear_of_legend(9.0, 25.0, py - 4.0)),
-                   "LowerLeft", 20, family)
+        lab_a = _add_label(layout, sec.begin, (9.0, clear_of_legend(9.0, 25.0, py - 4.0)),
+                           "LowerLeft", 20, family)
         px, py = to_layout(L, sec.topo_at(L))
         xr = 2.15 + W - 8.0
-        _add_label(layout, sec.end, (xr, clear_of_legend(xr - 16.0, xr, py - 4.0)),
-                   "LowerRight", 20, family)
+        lab_b = _add_label(layout, sec.end, (xr, clear_of_legend(xr - 16.0, xr, py - 4.0)),
+                           "LowerRight", 20, family)
+        for lab in (lab_a, lab_b):
+            r = lab.sceneBoundingRect()
+            obstacles.append((r.left(), r.top(), r.right(), r.bottom()))
+        # attitude / apparent-dip note under the scale bar
+        if note_lines:
+            _add_label(layout, "\n".join(note_lines), (11.0, y_note), "UpperLeft", 9, family, grow=1.5)
         # borehole names
         for h in sec.holes:
             lx, ly = to_layout(h["ch"], max(h["z"], sec.topo_at(h["ch"])))
-            _add_label(layout, h["b"].hole_no, (lx, ly - 1.5), "LowerMiddle", 14, family)
-        # stratum names at the left end (from the first borehole)
+            lab = _add_label(layout, h["b"].hole_no, (lx, ly - 1.5), "LowerMiddle", 14, family)
+            r = lab.sceneBoundingRect()
+            obstacles.append((r.left(), r.top(), r.right(), r.bottom()))
+        # stratum names at the left end, centred between the unit's bounding lines.
+        # Thin units get a smaller font; if even 8 pt does not fit (or it would collide with
+        # another name) the name is placed nearby with a leader arrow (call-out).
         if sec.holes:
-            b = sec.holes[0]["b"]
-            groups = []
-            for item_ in b.layers:
-                desc = item_["desc"] or ""
-                unit = desc.split("：")[0].split(":")[0].strip() if ("：" in desc or ":" in desc) else ""
-                from .symbology import code_name
-                if not unit or len(unit) > 12:
-                    unit = code_name(item_["code"]) or item_["code"]
-                # merge weathering variants of the same rock into one name
-                base = code_name(item_["code"]) or unit
-                if groups and groups[-1][0] == base:
-                    groups[-1][2] = item_["bottom"]
-                else:
-                    groups.append([base, item_["top"], item_["bottom"], unit])
+            x_lab = xmin + (4.0 + 14.0 - 2.15) / k     # chainage under the label centre
             h0 = sec.holes[0]
-            z0 = sec.topo_at(0) + (h0["z"] - sec.topo_at(h0["ch"]))
-            last_y = -1e9
-            for base, t, bt, unit in groups:
-                lx, ly = to_layout(0, z0 - (t + bt) / 2.0)
-                if ly - last_y < 7 or ly > 2.15 + H - 3:
-                    continue
-                _add_label(layout, unit if len(unit) <= 6 else base, (4.0, ly), "MiddleLeft", 17, family)
-                last_y = ly
+            items = []
+            for name, ztop, zbot in sec.unit_bands(x_lab):
+                xx, anchor, lx = x_lab, "MiddleLeft", 4.0
+                if ztop is None or zbot is None:
+                    # the unit does not reach the section edge: label it beside the first borehole
+                    xx = h0["ch"] - sec.col_w
+                    bands = dict((n, (t, b2)) for n, t, b2 in sec.unit_bands(xx))
+                    ztop, zbot = bands.get(name, (None, None))
+                    anchor, lx = "MiddleRight", to_layout(xx, 0)[0]
+                    if ztop is None or zbot is None:
+                        continue
+                y_top = to_layout(xx, max(ztop, zbot))[1]
+                y_bot = to_layout(xx, min(ztop, zbot))[1]
+                tx = to_layout(xx, 0)[0]      # call-out arrows point at the band centre at this x
+                items.append((name, lx, anchor, y_top, y_bot, tx))
+            _place_unit_labels(layout, items, family, 2.15 + 3.0, 2.15 + H - 3.0, obstacles)
         return layout
+
+
+def _text_height_mm(pt):
+    return pt * 0.3528 * 1.25
+
+
+def _place_unit_labels(layout, items, family, y_min, y_max, obstacles, fs_max=17.0, fs_min=8.0, fs_call=10.0):
+    """items: [(name, x_mm, anchor 'MiddleLeft'|'MiddleRight', band_top_mm, band_bottom_mm)] top to bottom."""
+    placed = [tuple(o) for o in obstacles if o]          # (x0, y0, x1, y1)
+
+    def box(x, anchor, yc, w, h):
+        x0 = x if anchor == "MiddleLeft" else x - w
+        return (x0, yc - h / 2.0, x0 + w, yc + h / 2.0)
+
+    def free(bx):
+        if bx[1] < y_min or bx[3] > y_max:
+            return False
+        return not any(bx[0] < o[2] and o[0] < bx[2] and bx[1] < o[3] and o[1] < bx[3] for o in placed)
+
+    for name, x, anchor, y_top, y_bot, tx in items:
+        y_top, y_bot = max(y_top, y_min - 50), min(y_bot, y_max + 50)
+        band_h = y_bot - y_top
+        yc = (y_top + y_bot) / 2.0
+        # 1) inside the band, shrinking the font to fit between the two boundary lines
+        fs = min(fs_max, (band_h * 0.85) / (0.3528 * 1.25))
+        fs = int(fs * 2) / 2.0
+        if fs >= fs_min and y_min <= yc <= y_max:
+            bx = box(x, anchor, yc, _text_width_mm(name, fs) + 1.0, _text_height_mm(fs))
+            if free(bx):
+                _add_label(layout, name, (x, yc), anchor, fs, family)
+                placed.append(bx)
+                continue
+        # 2) call-out: put the name in free space above / below the band with a leader arrow
+        h = _text_height_mm(fs_call)
+        w = _text_width_mm(name, fs_call) + 1.0
+        shift = 9.0 if anchor == "MiddleLeft" else -9.0
+        # arrow tip at the band centre where the band was measured; the last leader segment runs
+        # horizontally along the centre line so the arrow head stays between the two boundaries
+        target = (tx, min(max(yc, y_min), y_max))
+        side = 1.0 if anchor == "MiddleLeft" else -1.0
+        elbow = (tx + side * 3.5, target[1])
+        head_w = max(0.5, min(1.4, band_h * 0.5))
+        cands = []
+        for i in range(6):
+            cands.append(y_top - h / 2.0 - 2.5 - i * (h + 1.0))
+            cands.append(y_bot + h / 2.0 + 2.5 + i * (h + 1.0))
+        for ty in cands:
+            bx = box(x + shift, anchor, ty, w, h)
+            if free(bx):
+                _add_label(layout, name, (x + shift, ty), anchor, fs_call, family)
+                placed.append(bx)
+                start = ((bx[0] + bx[2]) / 2.0, bx[3] if ty < target[1] else bx[1])
+                _add_leader(layout, [start, elbow, target], head_w)
+                break
+
+
+def _add_leader(layout, pts, head_w=1.4):
+    """Thin leader polyline with an arrow head pointing at the last point (layout mm)."""
+    from qgis.PyQt.QtCore import QPointF
+    from qgis.PyQt.QtGui import QPolygonF
+    from qgis.core import QgsLayoutItemPolyline, QgsLineSymbol
+    line = QgsLayoutItemPolyline(QPolygonF([QPointF(p[0], p[1]) for p in pts]), layout)
+    line.setSymbol(QgsLineSymbol.createSimple({"line_color": "40,40,40", "line_width": "0.25",
+                                               "line_width_unit": "MM"}))
+    try:
+        line.setEndMarker(enum_value(QgsLayoutItemPolyline, "MarkerMode", "ArrowHead"))
+        line.setArrowHeadWidth(head_w)
+    except Exception as e:
+        log_exception("引線箭頭", e)
+    layout.addLayoutItem(line)
+    return line
+
+
+def _text_width_mm(text, pt):
+    """Rough rendered width of a text line (CJK full width, Latin about half)."""
+    em = pt * 0.3528
+    return sum(em if ord(ch) > 0x2E80 else 0.56 * em for ch in text)
+
+
+def _set_canvas_extent(qgz_path, rect, crs):
+    """Store a map-canvas extent in the .qgz so QGIS opens the project zoomed to the section."""
+    import zipfile
+    from qgis.PyQt.QtCore import QSize
+    from qgis.core import QgsMapSettings
+    ms = QgsMapSettings()
+    ms.setDestinationCrs(crs)
+    ms.setOutputSize(QSize(1600, 900))
+    ms.setExtent(rect)
+    doc = QDomDocument()
+    el = doc.createElement("mapcanvas")
+    el.setAttribute("name", "theMapCanvas")
+    el.setAttribute("annotationsVisible", "1")
+    doc.appendChild(el)
+    ms.writeXml(el, doc)
+    xml = doc.toString()
+    with zipfile.ZipFile(qgz_path, "r") as z:
+        items = [(i, z.read(i.filename)) for i in z.infolist()]
+    out = []
+    for info, data in items:
+        if info.filename.lower().endswith(".qgs"):
+            txt = data.decode("utf-8")
+            if "<mapcanvas" not in txt:
+                txt = txt.replace("</qgis>", xml + "</qgis>")
+            data = txt.encode("utf-8")
+        out.append((info, data))
+    with zipfile.ZipFile(qgz_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for info, data in out:
+            z.writestr(info, data)
 
 
 def _fit_legend(layout, legend):

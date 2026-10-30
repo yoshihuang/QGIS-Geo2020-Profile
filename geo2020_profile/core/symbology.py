@@ -195,3 +195,40 @@ def adjust_terrain_renderer(layer, present):
                                               "line_width_unit": "MM", "line_style": style})
             new.append(QgsRendererCategory(t, sym, t, True))
     layer.setRenderer(QgsCategorizedSymbolRenderer(r.classAttribute(), new))
+
+
+def label_terrain_lines(layer, family):
+    """Label 地層視傾角 and 斷層 lines with their apparent dip (parallel to the line)."""
+    from qgis.core import (QgsPalLayerSettings, QgsRuleBasedLabeling, QgsTextBufferSettings,
+                           QgsTextFormat)
+    from qgis.PyQt.QtGui import QFont
+
+    def settings(color):
+        st = QgsPalLayerSettings()
+        st.isExpression = True
+        st.fieldName = "'視傾角 ' || format_number(abs(\"視傾角\"), 1) || '°'"
+        fmt = QgsTextFormat()
+        fmt.setFont(QFont(family))
+        fmt.setSize(7)
+        fmt.setColor(QColor(color))
+        buf = QgsTextBufferSettings()
+        buf.setEnabled(True)
+        buf.setSize(0.8)
+        buf.setColor(QColor(255, 255, 255))
+        fmt.setBuffer(buf)
+        st.setFormat(fmt)
+        if hasattr(Qgis, "LabelPlacement"):
+            st.placement = Qgis.LabelPlacement.Line
+        else:  # QGIS < 3.26
+            st.placement = enum_value(QgsPalLayerSettings, "Placement", "Line")
+        st.dist = 0.6
+        return st
+
+    root = QgsRuleBasedLabeling.Rule(None)
+    for typ, color in (("地層視傾角", "#555555"), ("斷層", "#c00000")):
+        r = QgsRuleBasedLabeling.Rule(settings(color))
+        r.setFilterExpression("\"type\" = '%s' AND \"視傾角\" IS NOT NULL" % typ)
+        r.setDescription(typ)
+        root.appendChild(r)
+    layer.setLabeling(QgsRuleBasedLabeling(root))
+    layer.setLabelsEnabled(True)
